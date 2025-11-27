@@ -26,6 +26,14 @@ def impute_knn(df: pd.DataFrame, n_neighbors: int ):
 
     return df
 
+def impute_missForest(df: pd.DataFrame):
+    """Impute missing values using MissForest algorithm."""
+    return df
+
+def impute_mice(df: pd.DataFrame, n_imputations: int = 5):
+    """Impute missing values using MICE (Multiple Imputation by Chained Equations) algorithm ."""
+    return df
+
 '''def impute_knn_manually(df: pd.DataFrame, n_neighbors: int):
     """Impute missing values using K-Nearest Neighbors algorithm"""
 
