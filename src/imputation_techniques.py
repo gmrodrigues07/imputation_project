@@ -26,3 +26,27 @@ def impute_knn(df: pd.DataFrame, n_neighbors: int ):
 
     return df
 
+'''def impute_knn_manually(df: pd.DataFrame, n_neighbors: int):
+    """Impute missing values using K-Nearest Neighbors algorithm"""
+
+    df = df.copy()
+    collumns = df.select_dtypes(include=[np.number]).columns # only collumns with numeric values
+    df_numeric = df[collumns].to_numpy() # convert to array
+    
+    for i in range(df_numeric.shape[0]): # iterate over rows
+
+        if np.any(np.isnan(df_numeric[i])): # if has a missing value
+
+            # checks the distance to each other point and calculates the norm to which points are closest
+            distances = np.linalg.norm(df_numeric - df_numeric[i], axis=1)
+            distances[i] = np.inf  # exclude itself by setting its distance to infinity
+            neighbor_indices = np.argsort(distances)[:n_neighbors] # sort from smallest to largest and keeps the n_neighbors closest
+
+            for j, value in enumerate(df_numeric[i]): # iterate over each column
+
+                if np.isnan(value): # if there is a value missing
+                    neighbor_values = df_numeric[neighbor_indices, j] # get the values of the neighbors for that column
+                    df_numeric[i, j] = np.nanmean(neighbor_values) # does the mean of the neighbors and assigns it to the missing value
+    
+    df[collumns] = df_numeric # replaces the numeric collumns with the new ones with the imputed values
+    return df'''
