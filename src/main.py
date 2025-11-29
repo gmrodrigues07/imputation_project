@@ -9,10 +9,11 @@ from imputation_techniques import impute_mean, impute_knn
 # Dataset 1   NOTE: INSERT REAL NAMES OF DATASETS ON THE PATHS
 
 # Load datasets from the other directory (from ../data/raw)
-original_path_1 = '../data/raw/1.csv' # Path to the original dataset create one for each dataset    
+original_path_1 = '../data/raw/heart_disease_uci.csv' # Path to the original dataset create one for each dataset  
+print("dataset path:", original_path_1)  
 df_original_1 = pd.read_csv(original_path_1) 
 # Load dataset without missing values (from ../data/processed)
-processed_path_1 = '../data/processed/1.csv'
+processed_path_1 = '../data/processed/heart_disease_uci.csv'
 df_processed_1 = pd.read_csv(processed_path_1)
 
 df_with_missing_1 = df_processed_1.copy()
@@ -69,7 +70,6 @@ print("Missing values introduced!!")
 
 #  Impute missing values using the techniques from imputation_techniques.py wanted 
 
-# Mean Imputation   
 # Dataset 1
 
 # Mean imputation
@@ -77,10 +77,10 @@ df_mean_imputed_1 = impute_mean(df_with_missing_1)
 # KNN imputation (select n_neighbors as wanted maybe make one big and one small and one medium?)
 df_knn_imputed_1 = impute_knn(df_with_missing_1, n_neighbors=5) 
 print("Dataset 1 imputation completed!!!!!!!!!!!!!!!")
-# index=False to avoid writing row numbers, unnecessary | used to save new datasets 
-df_with_missing_1.to_csv('../data/processed/with_missing/dataset1_with_missing.csv', index = False)
-df_mean_imputed_1.to_csv('../data/processed/results/dataset1_mean_imputed.csv', index = False)
-df_knn_imputed_1.to_csv('../data/processed/results/dataset1_knn_imputed.csv', index = False)  
+# index=False to avoid writing the numeration of the rows | used to save new datasets 
+df_with_missing_1.to_csv('../data/processed/with_missing/dataset1_with_missing.csv', index = False)  # save dataset with missing values (in with_missing folder)
+df_mean_imputed_1.to_csv('../data/processed/results/dataset1_mean_imputed.csv', index = False)       # save mean imputed dataset        (in results folder)
+df_knn_imputed_1.to_csv('../data/processed/results/dataset1_knn_imputed.csv', index = False)         # save knn imputed dataset         (in results folder)
 
 # Dataset 2     
 
@@ -89,9 +89,9 @@ df_mean_imputed_2 = impute_mean(df_with_missing_2)
 # KNN imputation
 df_knn_imputed_2 = impute_knn(df_with_missing_2, n_neighbors=3) 
 print("Dataset 2 imputation completed!!!!!!!!!!!!!!!")
-df_with_missing_2.to_csv('../data/processed/with_missing/dataset2_with_missing.csv', index = False)
-df_mean_imputed_2.to_csv('../data/processed/results/dataset2_mean_imputed.csv', index = False)
-df_knn_imputed_2.to_csv('../data/processed/results/dataset2_knn_imputed.csv', index = False)
+df_with_missing_2.to_csv('../data/processed/with_missing/dataset2_with_missing.csv', index = False)  # save dataset with missing values
+df_mean_imputed_2.to_csv('../data/processed/results/dataset2_mean_imputed.csv', index = False)       # save mean imputed dataset
+df_knn_imputed_2.to_csv('../data/processed/results/dataset2_knn_imputed.csv', index = False)         # save knn imputed dataset
 
 # Dataset 3
 
@@ -100,8 +100,11 @@ df_mean_imputed_3 = impute_mean(df_with_missing_3)
 # KNN imputation
 df_knn_imputed_3 = impute_knn(df_with_missing_3, n_neighbors=7) 
 print("Dataset 3 imputation completed!!!!!!!!!!!!!!!")
-df_with_missing_3.to_csv('../data/processed/with_missing/dataset3_with_missing.csv', index = False)
-df_mean_imputed_3.to_csv('../data/processed/results/dataset3_mean_imputed.csv', index = False)
-df_knn_imputed_3.to_csv('../data/processed/results/dataset3_knn_imputed.csv', index = False)
+df_with_missing_3.to_csv('../data/processed/with_missing/dataset3_with_missing.csv', index = False)  # save dataset with missing values
+df_mean_imputed_3.to_csv('../data/processed/results/dataset3_mean_imputed.csv', index = False)       # save mean imputed dataset
+df_knn_imputed_3.to_csv('../data/processed/results/dataset3_knn_imputed.csv', index = False)         # save knn imputed dataset
 
 print("All datasets created were saved!")
+
+# plot the comparison between the methods using the metrics (call the metrics (other file) and then plot the results here)
+
