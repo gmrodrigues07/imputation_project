@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import KFold, StratifiedKFold
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+from sklearn.model_selection import KFold, StratifiedKFold, cross_val_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+from sklearn.ensemble import RandomForestClassifier 
 import time
 
 
@@ -114,7 +114,7 @@ def evaluate_imputation(original_values, imputed_values, metric='rmse'):
     else:
         raise ValueError(f"Unknown metric: {metric}")
 
-
+# might need to eliminate this function later because we will implement it on the main.py file due to the monte carlo simulation
 def cross_validate_imputation(data, imputation_method, n_splits=5, missing_percentage=0.2, 
                                stratify_column=None, metrics=['rmse', 'mae', 'r2'], 
                                random_state=42, verbose=True):
@@ -275,7 +275,7 @@ def cross_validate_imputation(data, imputation_method, n_splits=5, missing_perce
     
     return results
 
-
+# might need to eliminate this function later because we will implement it on the main.py file due to the monte carlo simulation
 def compare_imputation_methods(data, methods_dict, n_splits=5, missing_percentage=0.2,
                                stratify_column=None, metrics=['rmse', 'mae'], 
                                random_state=42):
@@ -347,6 +347,30 @@ def compare_imputation_methods(data, methods_dict, n_splits=5, missing_percentag
     print(comparison_df.to_string(index=False))
     
     return comparison_df
+
+def evaluate_downstream_task(df_imputed, target_col, cv=5):
+    """
+    Treina um Random Forest para classificar a coluna alvo, e depois mede a 'Certeza da Decisão' em cenários reais.
+    """
+    if target_col not in df_imputed.columns:
+        return np.nan
+        
+    # Remove linhas onde o target ainda é NaN
+    df = df_imputed.dropna(subset=[target_col])
+    
+    X = df.drop(columns=[target_col]).select_dtypes(include=[np.number])
+    y = df[target_col]
+    
+    # Verifica se é classificação (poucos valores únicos)
+    if pd.api.types.is_numeric_dtype(y) and y.nunique() > 20:
+        return np.nan 
+    
+    try:
+        clf = RandomForestClassifier(n_estimators=50, max_depth=10, n_jobs=-1)
+        scores = cross_val_score(clf, X, y, cv=cv, scoring='accuracy')
+        return scores.mean()
+    except Exception:
+        return np.nan
 
 
 if __name__ == "__main__":
