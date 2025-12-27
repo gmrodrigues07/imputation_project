@@ -21,7 +21,7 @@ class ImputationVisualizer:
             except OSError:
                 pass
 
-    def _get_method_color(self, method_name, method_list):
+    def get_method_color(self, method_name, method_list):
         try:
             m_list_lower = [str(m).lower() for m in method_list]
             idx = m_list_lower.index(str(method_name).lower())
@@ -29,7 +29,7 @@ class ImputationVisualizer:
         except ValueError:
             return 'gray'
 
-    # --- PLOTS DE BARRAS (Fase 1) ---
+    # PLOTS DE BARRAS 
     def plot_bar_comparison(self, metric='rmse'):
         if self.metrics_summary is None: return
         col_mean = f"{metric.upper()}_mean"
@@ -41,9 +41,9 @@ class ImputationVisualizer:
         
         save_path = os.path.join(self.output_dir, f'bar_comparison_{metric.lower()}.png')
         plt.figure(figsize=(10, 6))
-        bars = plt.bar(methods, values, color=[self._get_method_color(m, methods) for m in methods])
+        bars = plt.bar(methods, values, color=[self.get_method_color(m, methods) for m in methods])
         plt.ylabel(f'Mean {metric.upper()}')
-        plt.title(f'{metric.upper()} Comparison (Lower is Better)')
+        plt.title(f'{metric.upper()} Comparison') # lower is better
         for bar in bars:
             plt.text(bar.get_x() + bar.get_width()/2., bar.get_height(), f'{bar.get_height():.4f}', ha='center', va='bottom')
         plt.tight_layout()
@@ -58,13 +58,13 @@ class ImputationVisualizer:
         
         plt.figure(figsize=(10, 6))
         bars = plt.barh(methods, times, color=self.colors[:len(methods)])
-        plt.xlabel('Time (seconds)')
+        plt.xlabel('Time (sec.)')
         plt.title('Computational Efficiency')
         plt.tight_layout()
         plt.savefig(os.path.join(self.output_dir, 'computation_time.png'), dpi=300)
         plt.close()
 
-    # --- PLOTS DE MONTE CARLO (Fase 1 e 2) ---
+    # PLOTS DE MONTE CARLO (fases 1 e 2) 
     def plot_monte_carlo_stability(self, metric='rmse'):
         if self.mc_df is None: return
         metric_col = next((c for c in self.mc_df.columns if c.lower() == metric.lower()), None)
@@ -76,7 +76,7 @@ class ImputationVisualizer:
         
         box = plt.boxplot(data, labels=methods, patch_artist=True)
         for patch, m in zip(box['boxes'], methods):
-            patch.set_facecolor(self._get_method_color(m, methods))
+            patch.set_facecolor(self.get_method_color(m, methods))
             patch.set_alpha(0.6)
             
         plt.title(f'Stability Analysis ({metric.upper()})')
@@ -95,7 +95,7 @@ class ImputationVisualizer:
         for i, m in enumerate(methods):
             subset = self.mc_df[self.mc_df['method'] == m][metric_col]
             try:
-                subset.plot(kind='density', ax=ax, label=m, linewidth=2, color=self._get_method_color(m, methods))
+                subset.plot(kind='density', ax=ax, label=m, linewidth=2, color=self.get_method_color(m, methods))
             except: pass
         plt.title(f'Error Density ({metric.upper()})')
         plt.legend()
@@ -114,7 +114,7 @@ class ImputationVisualizer:
             subset = self.mc_df[self.mc_df['method'] == m].reset_index(drop=True)
             if not subset.empty:
                 plt.plot(subset.index + 1, subset[metric_col].expanding().mean(), 
-                         label=m, color=self._get_method_color(m, methods))
+                         label=m, color=self.get_method_color(m, methods))
         
         plt.title(f'Convergence ({metric.upper()})')
         plt.xlabel('Iterations')
@@ -129,41 +129,53 @@ class ImputationVisualizer:
         acc_col = next((c for c in self.mc_df.columns if 'accuracy' in c.lower()), None)
         if not acc_col: return
 
-        plt.figure(figsize=(10, 6))
+        plot_data = []
+        plot_labels = []
+
         methods = self.mc_df['method'].unique()
-        data = [self.mc_df[self.mc_df['method'] == m][acc_col].dropna().values for m in methods]
+
+        for m in methods:
+            data = self.mc_df[self.mc_df['method'] == m][acc_col].dropna().values
+            if len(data) > 0:
+                plot_data.append(data)
+                plot_labels.append(m)
         
+        if not plot_data:
+            print("Warning: No valid accuracy data found to plot downstream uncertainty.")
+            plt.close()
+            return
+        
+        plt.figure(figsize=(10, 6)) 
         parts = plt.violinplot(data, showmeans=False, showmedians=True)
+
         for i, pc in enumerate(parts['bodies']):
-            pc.set_facecolor(self._get_method_color(methods[i], methods))
+            pc.set_facecolor(self.get_method_color(plot_labels[i], methods))
             pc.set_alpha(0.7)
             
-        plt.xticks(np.arange(1, len(methods) + 1), methods)
+        plt.xticks(np.arange(1, len(plot_labels) + 1), plot_labels)
         plt.title('Decision Certainty (Model Accuracy)')
         plt.ylabel('Accuracy')
         plt.tight_layout()
         plt.savefig(os.path.join(self.output_dir, 'downstream_uncertainty.png'), dpi=300)
         plt.close()
 
-    # --- PLOT DE SCATTER (Novo!) ---
+    #  PLOT DE SCATTER 
     def plot_scatter_comparison(self, df_raw, imputed_dict, col_x, col_y):
         """
-        Plota Scatter: Pontos Observados (Cinza) vs Pontos Imputados (Coloridos).
+        Plota Scatter: Pontos Observados a cinza vs Pontos Imputados a cor.
         """
         # Verifica se as colunas existem
         if col_x not in df_raw.columns or col_y not in df_raw.columns:
             return
 
-        # Máscara: Onde havia missing ORIGINALMENTE em X ou Y?
-        # Esses são os pontos que queremos destacar como "Imputados"
         mask_missing = df_raw[col_x].isna() | df_raw[col_y].isna()
         mask_observed = ~mask_missing
         
-        # Dados Observados (Base Comum)
+        # dados observados, a base comum
         obs_x = df_raw.loc[mask_observed, col_x]
         obs_y = df_raw.loc[mask_observed, col_y]
 
-        # Configurar subplot: 1 linha, N colunas (uma para cada método)
+        # configurar a subplot. 1 linha, N colunas (uma para cada método)
         methods = sorted(list(imputed_dict.keys()))
         fig, axes = plt.subplots(1, len(methods), figsize=(5 * len(methods), 5), sharey=True)
         if len(methods) == 1: axes = [axes]
@@ -174,11 +186,11 @@ class ImputationVisualizer:
             # 1. Plotar fundo cinza (observados)
             ax.scatter(obs_x, obs_y, color='lightgray', alpha=0.5, label='Observed', s=15)
             
-            # 2. Plotar imputados (onde era missing)
+            # 2. Plotar imputados (missing)
             imp_x = df_filled.loc[mask_missing, col_x]
             imp_y = df_filled.loc[mask_missing, col_y]
             
-            color = self._get_method_color(method, methods)
+            color = self.get_method_color(method, methods)
             ax.scatter(imp_x, imp_y, color=color, alpha=0.8, label='Imputed', s=20, edgecolor='white', linewidth=0.5)
             
             ax.set_title(f'{method}')
@@ -204,9 +216,44 @@ class ImputationVisualizer:
         methods = sorted(list(imputed_dict.keys()))
         for i, m in enumerate(methods, 1):
             data = imputed_dict[m][col]
-            axes[i].hist(data, bins=30, color=self._get_method_color(m, methods), alpha=0.7, density=True)
+            axes[i].hist(data, bins=30, color=self.get_method_color(m, methods), alpha=0.7, density=True)
             axes[i].set_title(m)
             
         plt.tight_layout()
         plt.savefig(os.path.join(self.output_dir, f'distribution_{col}.png'), dpi=300)
+        plt.close()
+
+    def plot_imputation_vs_downstream(self):
+        """
+        Plota RMSE vs Acurácia (diferente de precisão basicamente é em relação a verdade e não entre os pontos)
+        para ver se 'Melhor Imputação = Melhor Decisão'.
+        """
+        if self.metrics_summary is None: return
+        
+        # ver se as colunas necessárias existem
+        cols = self.metrics_summary.columns
+        if 'RMSE_mean' not in cols or 'Accuracy_mean' not in cols: return
+        
+        df = self.metrics_summary
+        
+        plt.figure(figsize=(8, 6))
+        
+        # plotar pontos
+        for i, row in df.iterrows():
+            method = row['Method']
+            rmse = row['RMSE_mean']
+            acc = row['Accuracy_mean']
+            color = self.get_method_color(method, df['Method'].tolist())
+            
+            plt.scatter(rmse, acc, color=color, s=150, label=method, edgecolors='black')
+            plt.text(rmse, acc + 0.002, f"  {method}", fontsize=11, va='bottom')
+
+        plt.title('Does Better Imputation Lead to Better Decisions?', fontsize=12, fontweight='bold')
+        plt.xlabel('Imputation Error (RMSE)', fontsize=11) #  lower is better
+        plt.ylabel('Downstream Accuracy', fontsize=11) # higher is better
+        plt.grid(True, linestyle='--', alpha=0.5)
+        
+        plt.tight_layout()
+        save_path = os.path.join(self.output_dir, 'correlation_rmse_accuracy.png')
+        plt.savefig(save_path, dpi=300)
         plt.close()

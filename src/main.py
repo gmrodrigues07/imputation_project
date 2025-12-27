@@ -1,110 +1,247 @@
-import numpy as np
-import matplotlib.pyplot as plt
+import os
 import pandas as pd
-import sklearn
-from imputation_techniques import impute_mean, impute_knn
+import numpy as np
+import time
+import warnings
 
-# Load Raw and Processed datasets for training and end result 
+warnings.filterwarnings("ignore", category=UserWarning, module="sklearn.model_selection") # Silencia avisos sobre classes com poucas amostras
+# warnings.filterwarnings("ignore", category=UserWarning, module="sklearn.impute") to stop the conversion warnings if we want 
 
-# Dataset 1   NOTE: INSERT REAL NAMES OF DATASETS ON THE PATHS
+# local imports 
+from imputation_techniques import impute_mean, impute_knn, impute_mice, impute_missForest, pool_mice_results
+from evaluation import create_missing_mask, evaluate_imputation, evaluate_downstream_task
+from visualization import ImputationVisualizer
+from preprocessing import load_data, clean_data, encode_categorical_variables, explore_data, identify_missing_patterns, analyze_missing_data_type
 
-# Load datasets from the other directory (from ../data/raw)
-original_path_1 = '../data/raw/heart_disease_uci.csv' # Path to the original dataset create one for each dataset  
-print("dataset path:", original_path_1)  
-df_original_1 = pd.read_csv(original_path_1) 
-# Load dataset without missing values (from ../data/processed)
-processed_path_1 = '../data/processed/heart_disease_uci.csv'
-df_processed_1 = pd.read_csv(processed_path_1)
+# directories 
+RAW_DIR = '../data/raw'
+PROCESSED_DIR = '../data/processed'
+RESULTS_DIR = '../results'
 
-df_with_missing_1 = df_processed_1.copy()
-print("Dataset 1 loaded!")
+# definição das iterações
+MC_TEST_ITER = 2   # Simulações de Teste
+MC_REAL_ITER = 2   # Simulações Reais
+MISSING_RATE = 0.2
 
-# Dataset 2
+# mapa de métodos
+METHODS = {
+    'Mean': lambda df: impute_mean(df),
+    'KNN': lambda df: impute_knn(df, n_neighbors=5),
+    'MICE': lambda df: pool_mice_results(impute_mice(df, n_imputations=5)),
+    'MissForest': lambda df: impute_missForest(df)
+}
 
-original_path_2 = '../data/raw/2.csv'     
-df_original_2 = pd.read_csv(original_path_2) 
-processed_path_2 = '../data/processed/2.csv'
-df_processed_2 = pd.read_csv(processed_path_2)
+STOCHASTIC = ['MICE', 'MissForest']
 
-df_with_missing_2 = df_processed_2.copy()
-print("Dataset 2 loaded!")
+# FUNÇÃO DA BARRA DE PROGRESSO 
 
-# Dataset 3 
+def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, length=40, fill='█'):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+    """
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filled_length = int(length * iteration // total)
+    bar = fill * filled_length + '-' * (length - filled_length)
+    
+    # \r volta ao inicio da linha, end='' evita nova linha
+    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end='', flush=True)
+    
+    if iteration == total: 
+        print()
 
-original_path_3 = '../data/raw/3.csv'   
-df_original_3 = pd.read_csv(original_path_3) 
-processed_path_3 = '../data/processed/3.csv'
-df_processed_3 = pd.read_csv(processed_path_3)
+def get_best_scatter_pair(df):
+    """Encontra par de colunas numéricas mais correlacionadas."""
+    try:
+        corr_matrix = df.select_dtypes(include=[np.number]).corr().abs()
+        np.fill_diagonal(corr_matrix.values, 0)
+        if corr_matrix.empty: return None, None
+        
+        max_val = corr_matrix.max().max()
+        row, col = np.where(corr_matrix == max_val)
+        if len(row) > 0:
+            return corr_matrix.columns[row[0]], corr_matrix.columns[col[0]]
+    except:
+        pass
+    return None, None
 
-df_with_missing_3 = df_processed_3.copy()
-print("Dataset 3 loaded!")
+def run_pipeline(file_path):
+    filename = os.path.basename(file_path)
+    dataset_name = os.path.splitext(filename)[0]
 
-#  Introduce Missing Values Artificially 
+    print(f"\n{'-'*20}Switched to new Dataset{'-'*20}")
+    print(f"\nPROCESSING: {filename}")
 
-# Introduce missing values artificially pseudorandomlly for training purpose and all techniques have the same cells missing in each dataset because of the seed 
-# Dataset 1
+    df_loaded = load_data(file_path)
 
-np.random.seed(42)
-missing_frac_1 = 0.2  # % of the values to be set as NaN
-for col in df_with_missing_1.select_dtypes(include=[np.number]).columns:
-    missing_indices = df_with_missing_1.sample(frac=missing_frac_1).index
-    df_with_missing_1.loc[missing_indices, col] = np.nan
+    if df_loaded is None:
+        print(f"Skipping {filename} due to error.")
+        return
+    
+    dataset_processed_dir = os.path.join(PROCESSED_DIR, dataset_name)
+    os.makedirs(dataset_processed_dir, exist_ok=True)
 
-# Dataset 2
+    print(f"\n\t\t INITIAL DATA ANALYSIS")
+    explore_data(df_loaded)
+    identify_missing_patterns(df_loaded)
+    analyze_missing_data_type(df_loaded)
+    
 
-np.random.seed(235)
-missing_frac_2 = 0.15  # % of the values to be set as NaN
-for col in df_with_missing_2.select_dtypes(include=[np.number]).columns:
-    missing_indices = df_with_missing_2.sample(frac=missing_frac_2).index
-    df_with_missing_2.loc[missing_indices, col] = np.nan    
+    df_clean = clean_data(df_loaded)
+    df_raw, _ = encode_categorical_variables(df_clean, encoding_type='label')
+    prep_path = os.path.join(dataset_processed_dir, f"{dataset_name}_preprocessed.csv")
+    df_raw.to_csv(prep_path, index=False)
+    print(f"Preprocessed data saved to: {prep_path}")
 
-# Dataset 3
+    # Detetar o Target
+    target_col = None
+    possible_targets = ['target', 'class', 'diagnosis', 'output', 'num']
+    for c in df_raw.columns:
+        if c.lower() in possible_targets:
+            target_col = c; 
+            break
+    
+    if target_col:
+        print(f"Target detected: '{target_col}'")
+    else:
+        print("No target detected. Skipping accuracy analysis.")
 
-np.random.seed(123)
-missing_frac_3 = 0.1  # % of the values to be set as NaN
-for col in df_with_missing_3.select_dtypes(include=[np.number]).columns:
-    missing_indices = df_with_missing_3.sample(frac=missing_frac_3).index
-    df_with_missing_3.loc[missing_indices, col] = np.nan
+    # FASE 1: MONTE CARLO - TESTE
 
-print("Missing values introduced!!")
+    print(f"\n Entering Phase 1: Test Monte Carlo ({MC_TEST_ITER} runs)")
+    test_results = []
+    df_complete = df_raw.dropna()
+    
+    if len(df_complete) > 50:
+        # inicializa a barra vazia (0 of the total)
+        print_progress_bar(0, MC_TEST_ITER, prefix='Progress:', suffix='Complete', length=40)
 
-#  Impute missing values using the techniques from imputation_techniques.py wanted 
+        for i in range(MC_TEST_ITER):
+            df_art, _, true_vals = create_missing_mask(df_complete, MISSING_RATE, random_state=i)
+            
+            for m_name, m_func in METHODS.items():
+                try:
+                    t0 = time.time()
+                    df_fill = m_func(df_art)
+                    dt = time.time() - t0
+                    
+                    rmse = evaluate_imputation(true_vals, df_fill, 'rmse')
+                    mae = evaluate_imputation(true_vals, df_fill, 'mae')
+                    
+                    acc = np.nan
+                    if target_col:
+                        acc = evaluate_downstream_task(df_fill, target_col)
 
-# Dataset 1
+                    test_results.append({
+                        'method': m_name, 'iteration': i,
+                        'rmse': rmse, 'mae': mae, 
+                        'accuracy': acc, 'time': dt
+                    })
+                except Exception as e:
+                    pass
+            
+            # fica mais ao menos como  Progress: |████------| 40.0% Iteration: X out of Y
+            print_progress_bar(i + 1, MC_TEST_ITER, prefix='Testing:', suffix=f'Iteration: {i+1} out of {MC_TEST_ITER}', length=40)
+            
+    else:
+        print("Not enough complete data for Phase 1. Skipping.")
+    
+    df_test = pd.DataFrame(test_results)
+    
+    metrics_summary = None
+    if not df_test.empty:
+        metrics_summary = df_test.groupby('method')[['rmse', 'mae', 'time', 'accuracy']].mean().reset_index()
+        metrics_summary.columns = ['Method', 'RMSE_mean', 'MAE_mean', 'Time_mean', 'Accuracy_mean']
 
-# Mean imputation
-df_mean_imputed_1 = impute_mean(df_with_missing_1)
-# KNN imputation (select n_neighbors as wanted maybe make one big and one small and one medium?)
-df_knn_imputed_1 = impute_knn(df_with_missing_1, n_neighbors=5) 
-print("Dataset 1 imputation completed!!!!!!!!!!!!!!!")
-# index=False to avoid writing the numeration of the rows | used to save new datasets 
-df_with_missing_1.to_csv('../data/processed/with_missing/dataset1_with_missing.csv', index = False)  # save dataset with missing values (in with_missing folder)
-df_mean_imputed_1.to_csv('../data/processed/results/dataset1_mean_imputed.csv', index = False)       # save mean imputed dataset        (in results folder)
-df_knn_imputed_1.to_csv('../data/processed/results/dataset1_knn_imputed.csv', index = False)         # save knn imputed dataset         (in results folder)
+    # FASE 2: MONTE CARLO - REAL
 
-# Dataset 2     
+    print(f"\n Entering Phase 2: Real Imputation ({MC_REAL_ITER} runs)")
+    real_results = []
+    final_dfs = {} 
+    
+    # inicializa a barra da fase 2
+    print_progress_bar(0, MC_REAL_ITER, prefix='Real Sim:', suffix='Complete', length=40)
 
-# Mean imputation
-df_mean_imputed_2 = impute_mean(df_with_missing_2)
-# KNN imputation
-df_knn_imputed_2 = impute_knn(df_with_missing_2, n_neighbors=3) 
-print("Dataset 2 imputation completed!!!!!!!!!!!!!!!")
-df_with_missing_2.to_csv('../data/processed/with_missing/dataset2_with_missing.csv', index = False)  # save dataset with missing values
-df_mean_imputed_2.to_csv('../data/processed/results/dataset2_mean_imputed.csv', index = False)       # save mean imputed dataset
-df_knn_imputed_2.to_csv('../data/processed/results/dataset2_knn_imputed.csv', index = False)         # save knn imputed dataset
+    for i in range(MC_REAL_ITER):
+        for m_name, m_func in METHODS.items():
+            if m_name not in STOCHASTIC and i > 0:
+                prev = [r for r in real_results if r['method'] == m_name]
+                if prev:
+                    real_results.append({'method': m_name, 'accuracy': prev[0]['accuracy']})
+                continue
 
-# Dataset 3
+            try:
+                df_fill = m_func(df_raw)
+                
+                final_dfs[m_name] = df_fill
+                
+                acc = np.nan
+                if target_col: 
+                    acc = evaluate_downstream_task(df_fill, target_col)
+                
+                real_results.append({'method': m_name, 'accuracy': acc})
+            except Exception as e:
+                pass
+        
+        # atualiza a barra
+        print_progress_bar(i + 1, MC_REAL_ITER, prefix='Real Sim:', suffix=f'Iter {i+1}/{MC_REAL_ITER}', length=40)
 
-# Mean imputation
-df_mean_imputed_3 = impute_mean(df_with_missing_3)
-# KNN imputation
-df_knn_imputed_3 = impute_knn(df_with_missing_3, n_neighbors=7) 
-print("Dataset 3 imputation completed!!!!!!!!!!!!!!!")
-df_with_missing_3.to_csv('../data/processed/with_missing/dataset3_with_missing.csv', index = False)  # save dataset with missing values
-df_mean_imputed_3.to_csv('../data/processed/results/dataset3_mean_imputed.csv', index = False)       # save mean imputed dataset
-df_knn_imputed_3.to_csv('../data/processed/results/dataset3_knn_imputed.csv', index = False)         # save knn imputed dataset
+    df_real = pd.DataFrame(real_results)
+    
+    # salvar os CSVs finais
+    for m, df in final_dfs.items():
+        out_name = f"{dataset_name}_{m}.csv"
+        df.to_csv(os.path.join(dataset_processed_dir, out_name), index=False)
 
-print("All datasets created were saved!")
+    # FASE 3: GRÁFICOS
 
-# plot the comparison between the methods using the metrics (call the metrics (other file) and then plot the results here)
+    print("\n Entering Phase 3: Generating Visualizations")
+    
+    viz = ImputationVisualizer(filename, metrics_summary, df_test)
+    
+    if metrics_summary is not None:
+        viz.plot_bar_comparison('rmse')
+        viz.plot_bar_comparison('mae')
+        viz.plot_computation_time()
+        viz.plot_monte_carlo_stability('rmse')
+        viz.plot_error_density('rmse')
+        viz.plot_convergence('rmse')
+        viz.plot_imputation_vs_downstream()
+        
+    if not df_real.empty and target_col:
+        viz.mc_df = df_real 
+        viz.plot_downstream_uncertainty()
+        
+    num_cols = df_raw.select_dtypes(include=[np.number]).columns
+    if len(num_cols) > 0 and final_dfs:
+        col_x, col_y = get_best_scatter_pair(df_raw)
+        if col_x and col_y:
+            viz.plot_scatter_comparison(df_raw, final_dfs, col_x, col_y)
+            
+        viz.plot_distribution_comparison(df_raw, final_dfs, num_cols[0])
 
+    print(f"\nSUCCESS: all graphs were created and inserted in {RESULTS_DIR}/{dataset_name}/.")
+    print(f"Pipeline Finished for {dataset_name}.")
+
+if __name__ == "__main__":
+    for d in [PROCESSED_DIR, RESULTS_DIR]:
+        if not os.path.exists(d): os.makedirs(d)
+        
+    try:
+        all_files = os.listdir(RAW_DIR)
+        files = [os.path.join(RAW_DIR, f) for f in all_files if f.endswith('.csv')]
+    except FileNotFoundError:
+        files = []
+    
+    if not files: 
+        print(f"No CSV files found in {RAW_DIR}")
+    else:
+        print(f"Found {len(files)} datasets: {[os.path.basename(f) for f in files]}")
+        for f in files: run_pipeline(f)

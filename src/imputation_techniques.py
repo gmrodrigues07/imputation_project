@@ -16,7 +16,7 @@ def impute_mean(df: pd.DataFrame ):
     # iterate over the columns and fill missing values with the mean
     for column in df.select_dtypes(include=[np.number]).columns:
         mean_value = df[column].mean()
-        df[column].fillna(mean_value, inplace=True)
+        df[column] = df[column].fillna(mean_value)
 
     return df
 
@@ -33,7 +33,7 @@ def impute_knn(df: pd.DataFrame, n_neighbors: int ):
 
 def impute_missForest(
     df: pd.DataFrame,
-    max_iter: int = 10,
+    max_iter: int = 20, # alterei para um valor mais pequeno para testes
     n_estimators: int = 100,
     random_state: int = None
 ) -> pd.DataFrame:
@@ -85,21 +85,20 @@ def impute_missForest(
     
     # Use IterativeImputer with RandomForest estimator
     imputer = IterativeImputer(
-        estimator=RandomForestRegressor(
-            n_estimators=n_estimators,
-            random_state=random_state,
-            n_jobs=-1
-        ),
+        estimator=RandomForestRegressor(n_estimators=n_estimators, random_state=random_state,n_jobs=-1),
         max_iter=max_iter,
         random_state=random_state,
         initial_strategy='mean'
     )
     
     # Fit and transform
-    imputed_data = imputer.fit_transform(df[all_cols])
-    df[all_cols] = imputed_data
+    try:
+        imputed_data = imputer.fit_transform(df[all_cols])
+        df[all_cols] = imputed_data
+    except Exception as e:
+        print(f"MissForest imputation failed: {e}")
+        return df
     
-    # Decode categorical variables back to original categories
     for col in categorical_cols:
         if col in label_encoders:
             le = label_encoders[col]
@@ -113,7 +112,7 @@ def impute_missForest(
 def impute_mice(
     df: pd.DataFrame,
     n_imputations: int = 5,
-    max_iter: int = 10,
+    max_iter: int = 20,
     random_state: int = None
 ) -> List[pd.DataFrame]:
     """
@@ -165,22 +164,19 @@ def impute_mice(
     # Generate multiple imputations
     for i in range(n_imputations):
         df_imp = df_encoded.copy()
-        
         # Set seed for this imputation
         seed = None if random_state is None else random_state + i
         
-        # Use IterativeImputer (MICE implementation in sklearn)
-        imputer = IterativeImputer(
-            max_iter=max_iter,
-            random_state=seed,
-            initial_strategy='mean',
-            sample_posterior=True  # Important for proper multiple imputation
-        )
+        # Use IterativeImputer (MICE implementation in sklearn), Important for proper multiple imputation
+        imputer = IterativeImputer( max_iter=max_iter, random_state=seed,initial_strategy='mean', sample_posterior=True)
         
-        # Fit and transform
-        imputed_data = imputer.fit_transform(df_imp[all_cols])
-        df_imp[all_cols] = imputed_data
-        
+        try:
+            # Fit and transform
+            imputed_data = imputer.fit_transform(df_imp[all_cols])
+            df_imp[all_cols] = imputed_data
+        except:
+            pass
+
         # Decode categorical variables back to original categories
         for col in categorical_cols:
             if col in label_encoders:

@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import KFold, StratifiedKFold, cross_val_score
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
-from sklearn.ensemble import RandomForestClassifier 
+from sklearn.ensemble import GradientBoostingClassifier 
 import time
 
 
@@ -355,18 +355,21 @@ def evaluate_downstream_task(df_imputed, target_col, cv=5):
     if target_col not in df_imputed.columns:
         return np.nan
         
-    # Remove linhas onde o target ainda é NaN
-    df = df_imputed.dropna(subset=[target_col])
+    # remover linhas onde o target ainda é NaN
+    df = df_imputed.dropna(subset=[target_col]).copy()
     
     X = df.drop(columns=[target_col]).select_dtypes(include=[np.number])
     y = df[target_col]
     
-    # Verifica se é classificação (poucos valores únicos)
-    if pd.api.types.is_numeric_dtype(y) and y.nunique() > 20:
+    # ver se é classificação
+    if pd.api.types.is_numeric_dtype(y):
+        y = y.round().astype(int)
+    
+    if y.nunique() > 20:
         return np.nan 
     
     try:
-        clf = RandomForestClassifier(n_estimators=50, max_depth=10, n_jobs=-1)
+        clf = GradientBoostingClassifier(n_estimators=50, max_depth=3, random_state=42)
         scores = cross_val_score(clf, X, y, cv=cv, scoring='accuracy')
         return scores.mean()
     except Exception:
