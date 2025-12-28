@@ -266,11 +266,15 @@ def analyze_missing_data_type(data, alpha=0.05):
             if mask.sum() < 2:
                 continue
                 
+            # to avoid constant array error
+            v1 = missing_indicator[mask]
+            v2 = data.loc[mask, obs_col]
+            
+            if v1.std() == 0 or v2.std() == 0:
+                continue
+
             try:
-                corr, p_value = stats.pointbiserialr(
-                    missing_indicator[mask],
-                    data.loc[mask, obs_col]
-                )
+                corr, p_value = stats.pointbiserialr(v1, v2)
                 
                 if abs(corr) > 0.1 and p_value < alpha:  # Significant correlation
                     correlation_results.append({
