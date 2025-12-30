@@ -5,7 +5,8 @@ import time
 import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning, module="sklearn.model_selection") # Silencia avisos sobre classes com poucas amostras
-# warnings.filterwarnings("ignore", category=UserWarning, module="sklearn.impute") to stop the conversion warnings if we want 
+# warnings.filterwarnings("ignore", category=UserWarning, module="sklearn.impute") to stop the conversion warnings from MICE if we want 
+warnings.filterwarnings("ignore", category=FutureWarning, module="sklearn.linear_model") # Silencia avisos futuros do sklearn neste caso do n_jobs = -1
 
 # local imports 
 from imputation_techniques import impute_mean, impute_knn, impute_mice, impute_missForest, pool_mice_results
@@ -19,8 +20,8 @@ PROCESSED_DIR = '../data/processed'
 RESULTS_DIR = '../results'
 
 # definição das iterações
-MC_TEST_ITER = 2   # Simulações de Teste
-MC_REAL_ITER = 2   # Simulações Reais
+MC_TEST_ITER = 2   # do 20 Simulações de Teste 
+MC_REAL_ITER = 2   # do 20 Simulações Reais 
 MISSING_RATE = 0.2
 
 # mapa de métodos
@@ -135,15 +136,23 @@ def run_pipeline(file_path):
                     rmse = evaluate_imputation(true_vals, df_fill, 'rmse')
                     mae = evaluate_imputation(true_vals, df_fill, 'mae')
                     
-                    acc = np.nan
+                    acc = {}
                     if target_col:
                         acc = evaluate_downstream_task(df_fill, target_col)
 
-                    test_results.append({
-                        'method': m_name, 'iteration': i,
-                        'rmse': rmse, 'mae': mae, 
-                        'accuracy': acc, 'time': dt
-                    })
+                    register = {
+                        'method': m_name,
+                        'iteration': i,
+                        'rmse': rmse,
+                        'mae': mae,
+                        'time': dt,
+                        'accuracy': acc
+                    }
+
+                    for model_name, score in acc.items():
+                        register[f'accuracy_{model_name}'] = score
+                        
+                    test_results.append(register    )
                 except Exception as e:
                     pass
             
@@ -157,8 +166,14 @@ def run_pipeline(file_path):
     
     metrics_summary = None
     if not df_test.empty:
-        metrics_summary = df_test.groupby('method')[['rmse', 'mae', 'time', 'accuracy']].mean().reset_index()
-        metrics_summary.columns = ['Method', 'RMSE_mean', 'MAE_mean', 'Time_mean', 'Accuracy_mean']
+        metrics_summary = df_test.groupby('method').mean(numeric_only=True).reset_index()
+        
+        metrics_summary = metrics_summary.rename(columns={
+            'method': 'Method', 
+            'rmse': 'RMSE_mean',
+            'mae': 'MAE_mean',
+            'time': 'Time_mean'
+        })
 
     # FASE 2: MONTE CARLO - REAL
 
@@ -174,7 +189,15 @@ def run_pipeline(file_path):
             if m_name not in STOCHASTIC and i > 0:
                 prev = [r for r in real_results if r['method'] == m_name]
                 if prev:
-                    real_results.append({'method': m_name, 'accuracy': prev[0]['accuracy']})
+                    
+                    prev_record = prev[0]
+                    new_record = {'method': m_name}
+
+                    for key, value in prev_record.items():
+                        if key.startswith('accuracy_'):
+                            new_record[key] = value
+
+                    real_results.append(new_record)
                 continue
 
             try:
@@ -182,11 +205,15 @@ def run_pipeline(file_path):
                 
                 final_dfs[m_name] = df_fill
                 
-                acc = np.nan
+                acc = {}
                 if target_col: 
                     acc = evaluate_downstream_task(df_fill, target_col)
                 
-                real_results.append({'method': m_name, 'accuracy': acc})
+                register = {'method': m_name}
+                for model_name, score in acc.items():
+                    register[f'accuracy_{model_name}'] = score
+                real_results.append(register)
+
             except Exception as e:
                 pass
         
@@ -225,7 +252,13 @@ def run_pipeline(file_path):
         if col_x and col_y:
             viz.plot_scatter_comparison(df_raw, final_dfs, col_x, col_y)
             
-        viz.plot_distribution_comparison(df_raw, final_dfs, num_cols[0])
+        # Encontrar a coluna numérica com mais valores em falta para o plot de distribuição
+        cols_with_missing = df_loaded.select_dtypes(include=[np.number]).isna().sum()
+        cols_with_missing = cols_with_missing[cols_with_missing > 0].sort_values(ascending=False)
+        
+        if not cols_with_missing.empty:
+            target_dist_col = cols_with_missing.index[0]
+            viz.plot_distribution_comparison(df_raw, final_dfs, target_dist_col)
 
     print(f"\nSUCCESS: all graphs were created and inserted in {RESULTS_DIR}/{dataset_name}/.")
     print(f"Pipeline Finished for {dataset_name}.")

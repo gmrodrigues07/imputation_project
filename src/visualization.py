@@ -125,40 +125,61 @@ class ImputationVisualizer:
         plt.close()
 
     def plot_downstream_uncertainty(self):
+        """
+        Gera Boxplots da acurácia usando APENAS Matplotlib.
+        Cria subplots (um para cada classificador) lado a lado.
+        """
         if self.mc_df is None: return
-        acc_col = next((c for c in self.mc_df.columns if 'accuracy' in c.lower()), None)
-        if not acc_col: return
+        
+        # Encontra colunas de acurácia
+        acc_cols = [c for c in self.mc_df.columns if c.startswith('accuracy_')]
+        if not acc_cols: return
 
-        plot_data = []
-        plot_labels = []
-
+        # Configura subplots: 1 linha, N colunas (uma por classificador)
+        n_plots = len(acc_cols)
+        fig, axes = plt.subplots(1, n_plots, figsize=(5 * n_plots, 6), sharey=True)
+        
+        if n_plots == 1: axes = [axes] # Garante que é lista mesmo se for só 1
+        
         methods = self.mc_df['method'].unique()
-
-        for m in methods:
-            data = self.mc_df[self.mc_df['method'] == m][acc_col].dropna().values
-            if len(data) > 0:
-                plot_data.append(data)
-                plot_labels.append(m)
         
-        if not plot_data:
-            print("Warning: No valid accuracy data found to plot downstream uncertainty.")
-            plt.close()
-            return
-        
-        plt.figure(figsize=(10, 6)) 
-        parts = plt.violinplot(data, showmeans=False, showmedians=True)
-
-        for i, pc in enumerate(parts['bodies']):
-            pc.set_facecolor(self.get_method_color(plot_labels[i], methods))
-            pc.set_alpha(0.7)
+        for ax, col in zip(axes, acc_cols):
+            clf_name = col.replace('accuracy_', '')
             
-        plt.xticks(np.arange(1, len(plot_labels) + 1), plot_labels)
-        plt.title('Decision Certainty (Model Accuracy)')
-        plt.ylabel('Accuracy')
-        plt.tight_layout()
-        plt.savefig(os.path.join(self.output_dir, 'downstream_uncertainty.png'), dpi=300)
-        plt.close()
+            # Prepara dados para o boxplot: lista de listas [[valores_metodo1], [valores_metodo2]...]
+            data_to_plot = []
+            labels = []
+            colors = []
+            
+            for m in methods:
+                vals = self.mc_df[self.mc_df['method'] == m][col].dropna().values
+                data_to_plot.append(vals)
+                labels.append(m)
+                colors.append(self.get_method_color(m, methods))
+            
+            # Cria o Boxplot
+            bplot = ax.boxplot(data_to_plot, patch_artist=True, labels=labels)
+            
+            # Colora as caixas
+            for patch, color in zip(bplot['boxes'], colors):
+                patch.set_facecolor(color)
+                patch.set_alpha(0.7)
+                
+            ax.set_title(clf_name, fontweight='bold')
+            ax.grid(True, axis='y', linestyle='--', alpha=0.5)
+            ax.tick_params(axis='x', rotation=45)
+            
+            if ax == axes[0]:
+                ax.set_ylabel('Accuracy Distribution')
 
+        plt.suptitle('Downstream Model Stability (Boxplots)', fontsize=14)
+        plt.tight_layout()
+        plt.subplots_adjust(top=0.9) # Espaço para o título principal
+        
+        save_path = os.path.join(self.output_dir, 'downstream_uncertainty.png')
+        plt.savefig(save_path, dpi=300)
+        plt.close()
+        
     #  PLOT DE SCATTER 
     def plot_scatter_comparison(self, df_raw, imputed_dict, col_x, col_y):
         """
@@ -222,38 +243,69 @@ class ImputationVisualizer:
         plt.tight_layout()
         plt.savefig(os.path.join(self.output_dir, f'distribution_{col}.png'), dpi=300)
         plt.close()
-
+    
     def plot_imputation_vs_downstream(self):
         """
-        Plota RMSE vs Acurácia (diferente de precisão basicamente é em relação a verdade e não entre os pontos)
-        para ver se 'Melhor Imputação = Melhor Decisão'.
+        Plota RMSE vs Acurácia usando APENAS Matplotlib.
         """
         if self.metrics_summary is None: return
         
-        # ver se as colunas necessárias existem
-        cols = self.metrics_summary.columns
-        if 'RMSE_mean' not in cols or 'Accuracy_mean' not in cols: return
+        # 1. Encontrar colunas de acurácia dinamicamente
+        acc_cols = [c for c in self.metrics_summary.columns if c.startswith('accuracy_')]
+        if not acc_cols or 'RMSE_mean' not in self.metrics_summary.columns: return
         
-        df = self.metrics_summary
+        plt.figure(figsize=(10, 7))
         
-        plt.figure(figsize=(8, 6))
+        # Marcadores nativos do Matplotlib
+        markers = ['o', 's', '^', 'D', 'v'] 
         
-        # plotar pontos
-        for i, row in df.iterrows():
-            method = row['Method']
-            rmse = row['RMSE_mean']
-            acc = row['Accuracy_mean']
-            color = self.get_method_color(method, df['Method'].tolist())
+        # Listas para criar legendas manuais
+        classifier_plots = []
+        classifier_names = []
+        
+        # 2. Loop para plotar cada classificador
+        for i, acc_col in enumerate(acc_cols):
+            clf_name = acc_col.replace('accuracy_', '')
+            marker = markers[i % len(markers)]
             
-            plt.scatter(rmse, acc, color=color, s=150, label=method, edgecolors='black')
-            plt.text(rmse, acc + 0.002, f"  {method}", fontsize=11, va='bottom')
+            # Ponto "fantasma" preto para a legenda das Formas
+            p, = plt.plot([], [], color='k', marker=marker, linestyle='None', 
+                          markersize=8, label=clf_name)
+            classifier_plots.append(p)
+            classifier_names.append(clf_name)
+            
+            # Loop pelos métodos (cores)
+            for _, row in self.metrics_summary.iterrows():
+                method = row['Method']
+                rmse = row['RMSE_mean']
+                acc = row[acc_col]
+                color = self.get_method_color(method, self.metrics_summary['Method'].tolist())
+                
+                plt.scatter(rmse, acc, color=color, marker=marker, s=120, 
+                            edgecolors='k', alpha=0.9, zorder=3)
 
-        plt.title('Does Better Imputation Lead to Better Decisions?', fontsize=12, fontweight='bold')
-        plt.xlabel('Imputation Error (RMSE)', fontsize=11) #  lower is better
-        plt.ylabel('Downstream Accuracy', fontsize=11) # higher is better
-        plt.grid(True, linestyle='--', alpha=0.5)
+        # 3. Legenda de Cores (Métodos) - Criação manual
+        method_handles = []
+        unique_methods = self.metrics_summary['Method'].unique()
+        for m in unique_methods:
+            c = self.get_method_color(m, unique_methods)
+            h, = plt.plot([], [], color=c, marker='o', linestyle='None', markersize=10)
+            method_handles.append(h)
+            
+        # Adicionar as legendas
+        first_legend = plt.legend(classifier_plots, classifier_names, title="Classifiers", 
+                                  loc='lower right', frameon=True)
+        plt.gca().add_artist(first_legend)
         
+        plt.legend(method_handles, unique_methods, title="Methods", 
+                   loc='lower left', frameon=True)
+
+        plt.title('Imputation RMSE vs Downstream Accuracy', fontsize=14)
+        plt.xlabel('Imputation RMSE (Lower is Better)', fontsize=12)
+        plt.ylabel('Accuracy (Higher is Better)', fontsize=12)
+        plt.grid(True, linestyle='--', alpha=0.5)
         plt.tight_layout()
-        save_path = os.path.join(self.output_dir, 'correlation_rmse_accuracy.png')
+        
+        save_path = os.path.join(self.output_dir, 'correlation_rmse_accuracy_combined.png')
         plt.savefig(save_path, dpi=300)
-        plt.close()
+        plt.close()        

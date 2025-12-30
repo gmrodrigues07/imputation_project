@@ -2,11 +2,14 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import KFold, StratifiedKFold, cross_val_score
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
-from sklearn.ensemble import GradientBoostingClassifier 
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler # to use for the logistic regression 
+from sklearn.pipeline import make_pipeline # to use for the logistic regression as well
 import time
 
 
-def create_missing_mask(data, missing_percentage=0.2, random_state=42):
+def create_missing_mask(data, missing_percentage=0.2, random_state=53):
     """
     Create a mask of artificial missing values for evaluation purposes.
     
@@ -117,7 +120,7 @@ def evaluate_imputation(original_values, imputed_values, metric='rmse'):
 # might need to eliminate this function later because we will implement it on the main.py file due to the monte carlo simulation
 def cross_validate_imputation(data, imputation_method, n_splits=5, missing_percentage=0.2, 
                                stratify_column=None, metrics=['rmse', 'mae', 'r2'], 
-                               random_state=42, verbose=True):
+                               random_state=53, verbose=True):
     """
     Perform k-fold cross-validation for imputation methods.
     
@@ -278,7 +281,7 @@ def cross_validate_imputation(data, imputation_method, n_splits=5, missing_perce
 # might need to eliminate this function later because we will implement it on the main.py file due to the monte carlo simulation
 def compare_imputation_methods(data, methods_dict, n_splits=5, missing_percentage=0.2,
                                stratify_column=None, metrics=['rmse', 'mae'], 
-                               random_state=42):
+                               random_state=53):
     """
     Compare multiple imputation methods using cross-validation.
     
@@ -355,7 +358,7 @@ def evaluate_downstream_task(df_imputed, target_col, cv=5):
     if target_col not in df_imputed.columns:
         return np.nan
         
-    # remover linhas onde o target ainda é NaN
+    # remove lines where the target is still NaN
     df = df_imputed.dropna(subset=[target_col]).copy()
     
     X = df.drop(columns=[target_col]).select_dtypes(include=[np.number])
@@ -365,16 +368,25 @@ def evaluate_downstream_task(df_imputed, target_col, cv=5):
     if pd.api.types.is_numeric_dtype(y):
         y = y.round().astype(int)
     
-    if y.nunique() > 20:
-        return np.nan 
+    if y.nunique() < 2:
+        return  
     
-    try:
-        clf = GradientBoostingClassifier(n_estimators=50, max_depth=3, random_state=42)
-        scores = cross_val_score(clf, X, y, cv=cv, scoring='accuracy')
-        return scores.mean()
-    except Exception:
-        return np.nan
+    classifiers = {
+        'LogisticRegression': make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000, n_jobs=-1, random_state=53)),
+        'RandomForest': RandomForestClassifier(n_estimators=50, n_jobs=-1, random_state=53),
+        'GradientBoosting': GradientBoostingClassifier(n_estimators=50, random_state=53, max_depth=3)
+    }
 
+    results = {}
+
+    for classifier_name, classifier in classifiers.items():
+        try:
+            scores = cross_val_score(classifier, X, y, cv=cv, scoring='accuracy')
+            results[classifier_name] = scores.mean()
+        except Exception as e:
+            results[classifier_name] = np.nan
+
+    return results
 
 if __name__ == "__main__":
     print("Evaluation module for imputation methods")
