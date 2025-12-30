@@ -351,6 +351,130 @@ def compare_imputation_methods(data, methods_dict, n_splits=5, missing_percentag
     
     return comparison_df
 
+
+def simple_imputation_comparison(data, imputation_functions, missing_percentage=0.2, random_state=42):
+    """
+    Simple comparison of imputation methods without cross-validation.
+    
+    Creates artificial missing values, imputes them with different methods,
+    and calculates MSE/RMSE compared to the real values.
+    
+    Parameters:
+    -----------
+    data : pd.DataFrame
+        Complete dataset (without missing values, or will use complete cases)
+    imputation_functions : dict
+        Dictionary of {method_name: imputation_function}
+        Each function should take a DataFrame and return an imputed DataFrame
+    missing_percentage : float
+        Percentage of values to artificially remove (0-1)
+    random_state : int
+        Random seed for reproducibility
+        
+    Returns:
+    --------
+    pd.DataFrame
+        Comparison table with MSE and RMSE for each method
+        
+    Example:
+    --------
+    >>> from imputation_techniques import impute_mean, impute_knn, impute_mice, pool_mice_results
+    >>> 
+    >>> methods = {
+    >>>     'Mean': impute_mean,
+    >>>     'KNN_5': lambda df: impute_knn(df, n_neighbors=5),
+    >>>     'MICE': lambda df: pool_mice_results(impute_mice(df, n_imputations=3))
+    >>> }
+    >>> results = simple_imputation_comparison(data, methods, missing_percentage=0.2)
+    """
+    print("\n" + "="*100)
+    print("SIMPLE IMPUTATION COMPARISON")
+    print("="*100)
+    
+    # Use only complete cases
+    data_complete = data.dropna()
+    print(f"Using {len(data_complete)} complete rows from dataset")
+    
+    # Create artificial missing values
+    print(f"\nCreating {missing_percentage*100}% artificial missing values...")
+    data_with_missing, missing_mask, original_values = create_missing_mask(
+        data_complete, 
+        missing_percentage=missing_percentage,
+        random_state=random_state
+    )
+    
+    total_missing = sum(len(v) for v in original_values.values())
+    print(f"Created {total_missing} artificial missing values across {len(original_values)} columns")
+    
+    # Test each imputation method
+    comparison_results = []
+    
+    for method_name, imputation_func in imputation_functions.items():
+        print(f"\n{'-'*100}")
+        print(f"Testing: {method_name}")
+        print(f"{'-'*100}")
+        
+        try:
+            import time
+            start_time = time.time()
+            
+            # Apply imputation
+            data_imputed = imputation_func(data_with_missing.copy())
+            
+            elapsed_time = time.time() - start_time
+            
+            # Calculate metrics
+            mse = evaluate_imputation(original_values, data_imputed, metric='rmse') ** 2  # Square to get MSE
+            rmse = np.sqrt(mse)
+            mae = evaluate_imputation(original_values, data_imputed, metric='mae')
+            
+            # Check if all missing values were imputed
+            remaining_missing = data_imputed.isnull().sum().sum()
+            
+            print(f"MSE:  {mse:.4f}")
+            print(f"RMSE: {rmse:.4f}")
+            print(f"MAE:  {mae:.4f}")
+            print(f"Time: {elapsed_time:.2f}s")
+            print(f"Remaining missing values: {remaining_missing}")
+            
+            comparison_results.append({
+                'Method': method_name,
+                'MSE': mse,
+                'RMSE': rmse,
+                'MAE': mae,
+                'Time (s)': elapsed_time,
+                'Missing_After': remaining_missing
+            })
+            
+        except Exception as e:
+            print(f"ERROR: {str(e)}")
+            comparison_results.append({
+                'Method': method_name,
+                'MSE': np.nan,
+                'RMSE': np.nan,
+                'MAE': np.nan,
+                'Time (s)': np.nan,
+                'Missing_After': np.nan
+            })
+    
+    # Create comparison DataFrame
+    comparison_df = pd.DataFrame(comparison_results)
+    
+    print("\n" + "="*100)
+    print("FINAL COMPARISON")
+    print("="*100)
+    print(comparison_df.to_string(index=False))
+    
+    # Rank methods by RMSE
+    comparison_df_sorted = comparison_df.sort_values('RMSE')
+    print("\n" + "="*100)
+    print("RANKING (Best to Worst by RMSE)")
+    print("="*100)
+    print(comparison_df_sorted.to_string(index=False))
+    
+    return comparison_df
+
+
 def evaluate_downstream_task(df_imputed, target_col, cv=5):
     """
     Treina um Random Forest para classificar a coluna alvo, e depois mede a 'Certeza da Decisão' em cenários reais.

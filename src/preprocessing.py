@@ -9,7 +9,7 @@ from sklearn.preprocessing import LabelEncoder
 
 def load_data(filepath):
     """
-    Load the heart disease dataset from CSV file.
+    Load the  dataset from CSV file.
     
     Parameters:
     -----------
@@ -439,14 +439,20 @@ def clean_data(data):
     
     #print(f"   Standardized missing values across {len(data_clean.columns)} columns")
     
-    # 3. Remove ID column if it exists (not useful for modeling)
-    #print("\n3. Checking for ID columns...")
-    if 'id' in data_clean.columns.str.lower():
+    # 3. Remove ID and dataset columns (not useful for modeling)
+    #print("\n3. Checking for ID and dataset columns...")
+    cols_to_remove = []
+    if ('id' or 'Id') in data_clean.columns.str.lower():
         id_cols = [col for col in data_clean.columns if col.lower() == 'id']
-        data_clean = data_clean.drop(columns=id_cols)
-        #print(f"   Removed ID column(s): {id_cols}")
+        cols_to_remove.extend(id_cols)
+    if 'dataset' in data_clean.columns:
+        cols_to_remove.append('dataset')
+    
+    if cols_to_remove:
+        data_clean = data_clean.drop(columns=cols_to_remove)
+        #print(f"   Removed column(s): {cols_to_remove}")
     #else:
-        #print("   No ID column found")
+        #print("   No ID or dataset columns found")
     
     # 4. Check for constant columns (all same value)
     #print("\n4. Checking for constant columns...")
@@ -551,7 +557,7 @@ def detect_outliers(data, method='iqr', threshold=1.5):
     return outlier_info
 
 
-def encode_categorical_variables(data, encoding_type='auto', drop_first=True):
+def encode_categorical_variables(data, encoding_type='label', drop_first=True):
     """
     Encode categorical variables using Label Encoding or One-Hot Encoding.
     
@@ -560,7 +566,7 @@ def encode_categorical_variables(data, encoding_type='auto', drop_first=True):
     data : pd.DataFrame
         Input dataset
     encoding_type : str
-        'label' for Label Encoding, 'onehot' for One-Hot Encoding, 
+        'label' for Label Encoding (default), 'onehot' for One-Hot Encoding, 
         'auto' to automatically choose based on cardinality
     drop_first : bool
         For one-hot encoding, whether to drop first category to avoid multicollinearity
@@ -737,59 +743,244 @@ def save_processed_data(train_data, test_data, output_dir='../data/processed', p
     return train_filepath, test_filepath
 
 
+def add_random_missing_values(data, missing_percentage, random_state=42, exclude_columns=None):
+    """
+    Add random missing values to a dataset.
+    
+    This function randomly introduces missing values (NaN) to specified columns 
+    in the dataset to simulate missing data scenarios for imputation testing.
+    
+    Parameters:
+    -----------
+    data : pd.DataFrame
+        Input dataset to add missing values to
+    missing_percentage : float
+        Percentage of values to make missing (0-100)
+        Example: 10.0 means 10% of values will be set to NaN
+    random_state : int, default=42
+        Random seed for reproducible results
+    exclude_columns : list, optional
+        List of column names to exclude from having missing values added
+        (e.g., target variables or ID columns)
+        
+    Returns:
+    --------
+    pd.DataFrame
+        Dataset with randomly added missing values
+        
+    Examples:
+    ---------
+    >>> # Add 15% missing values to all columns except the target
+    >>> df_with_missing = add_random_missing_values(
+    ...     data=df, 
+    ...     missing_percentage=15.0, 
+    ...     exclude_columns=['target']
+    ... )
+    
+    >>> # Add 5% missing values to all columns
+    >>> df_with_missing = add_random_missing_values(df, 5.0)
+    """
+    if data is None:
+        print("Error: No data provided")
+        return None
+    
+    if not 0 <= missing_percentage <= 100:
+        print("Error: missing_percentage must be between 0 and 100")
+        return None
+    
+    # Create a copy to avoid modifying the original data
+    data_with_missing = data.copy()
+    
+    # Set random seed for reproducibility
+    np.random.seed(random_state)
+    
+    # Get columns to modify (exclude specified columns)
+    columns_to_modify = data.columns.tolist()
+    if exclude_columns:
+        columns_to_modify = [col for col in columns_to_modify if col not in exclude_columns]
+    
+    if not columns_to_modify:
+        print("Warning: No columns available to add missing values (all excluded)")
+        return data_with_missing
+    
+    print(f"\nAdding {missing_percentage}% random missing values...")
+    print(f"Columns to modify: {columns_to_modify}")
+    if exclude_columns:
+        print(f"Excluded columns: {exclude_columns}")
+    
+    # Calculate number of values to make missing
+    total_cells_to_modify = len(data_with_missing) * len(columns_to_modify)
+    n_missing_to_add = int(total_cells_to_modify * (missing_percentage / 100))
+    
+    print(f"Total cells in target columns: {total_cells_to_modify}")
+    print(f"Number of values to make missing: {n_missing_to_add}")
+    
+    # Generate random positions for missing values
+    missing_positions = []
+    
+    for _ in range(n_missing_to_add):
+        # Randomly select a row
+        row_idx = np.random.randint(0, len(data_with_missing))
+        # Randomly select a column from the modifiable columns
+        col_idx = np.random.randint(0, len(columns_to_modify))
+        col_name = columns_to_modify[col_idx]
+        
+        missing_positions.append((row_idx, col_name))
+    
+    # Add missing values at the selected positions
+    missing_count_by_column = {}
+    for row_idx, col_name in missing_positions:
+        data_with_missing.iloc[row_idx, data_with_missing.columns.get_loc(col_name)] = np.nan
+        missing_count_by_column[col_name] = missing_count_by_column.get(col_name, 0) + 1
+    
+    # Report results
+    print("\nMissing values added successfully!")
+    print("Missing values per column:")
+    for col in columns_to_modify:
+        count = missing_count_by_column.get(col, 0)
+        percentage = (count / len(data_with_missing) * 100) if len(data_with_missing) > 0 else 0
+        print(f"  {col}: {count} values ({percentage:.2f}%)")
+    
+    # Overall missing values summary
+    total_missing_before = data.isnull().sum().sum()
+    total_missing_after = data_with_missing.isnull().sum().sum()
+    added_missing = total_missing_after - total_missing_before
+    
+    print(f"\nSummary:")
+    print(f"  Missing values before: {total_missing_before}")
+    print(f"  Missing values after: {total_missing_after}")
+    print(f"  Missing values added: {added_missing}")
+    
+    total_cells = data_with_missing.shape[0] * data_with_missing.shape[1]
+    overall_missing_pct = (total_missing_after / total_cells * 100) if total_cells > 0 else 0
+    print(f"  Overall missing percentage: {overall_missing_pct:.2f}%")
+    
+    return data_with_missing
+
+
 if __name__ == "__main__":
-    # Define file path (relative to src directory)
+    # Define file paths (relative to src directory)
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    data_path = os.path.join(script_dir, "..", "data", "raw", "heart_disease_uci.csv")
+    heart_disease_path = os.path.join(script_dir, "..", "data", "raw", "heart_disease_uci.csv")
+    wineqt_path = os.path.join(script_dir, "..", "data", "raw", "WineQT.csv")
     
-    # Load data
-    print("Loading dataset...")
-    df = load_data(data_path)
+    # Choose which dataset to process
+    print("="*100)
+    print("DATASET SELECTION")
+    print("="*100)
+    print("1. Heart Disease UCI")
+    print("2. Wine Quality")
+    print("3. Both datasets")
     
-    if df is not None:
-        # Step 1: Explore data
-        exploration_results = explore_data(df)
+    dataset_choice = input("\nSelect dataset (1, 2, or 3): ").strip()
+    
+    datasets_to_process = []
+    if dataset_choice == "1":
+        datasets_to_process = [("Heart Disease", heart_disease_path, "num")]
+    elif dataset_choice == "2":
+        datasets_to_process = [("Wine Quality", wineqt_path, "quality")]
+    elif dataset_choice == "3":
+        datasets_to_process = [
+            ("Heart Disease", heart_disease_path, "num"),
+            ("Wine Quality", wineqt_path, "quality")
+        ]
+    else:
+        print("Invalid choice. Exiting.")
+        exit()
+    
+    # Process each dataset
+    for dataset_name, data_path, target_col in datasets_to_process:
+        print("\n\n" + "="*100)
+        print(f"PROCESSING: {dataset_name.upper()}")
+        print("="*100)
         
-        # Step 2: Identify missing patterns
-        missing_patterns = identify_missing_patterns(df)
+        # Load data
+        print(f"\nLoading {dataset_name} dataset...")
+        df = load_data(data_path)
         
-        # Step 3: Analyze missing data type (MCAR, MAR, MNAR)
-        missing_type_analysis = analyze_missing_data_type(df)
-        
-        # Step 4: Clean data
-        df_clean = clean_data(df)
-        
-        # Step 5: Detect outliers (informational only, not removing them yet)
-        outlier_info = detect_outliers(df_clean, method='iqr', threshold=1.5)
-        
-        # Step 6: Encode categorical variables
-        df_encoded, encoding_info = encode_categorical_variables(df_clean, encoding_type='auto')
-        
-        # Step 7: Split into train/test BEFORE imputation
-        # Using 'num' as target for stratification (heart disease diagnosis)
-        train_data, test_data = split_train_test(
-            df_encoded, 
-            target_column='num',
-            test_size=0.2,
-            random_state=42,
-            stratify=True
-        )
-        
-        # Step 8: Save processed data
-        if train_data is not None and test_data is not None:
-            save_processed_data(
-                train_data, 
-                test_data, 
-                output_dir='../data/processed',
-                prefix='preprocessed_'
+        if df is not None:
+            # Step 1: Explore data
+            exploration_results = explore_data(df)
+            
+            # Step 2: Identify missing patterns
+            missing_patterns = identify_missing_patterns(df)
+            
+            # Step 3: Analyze missing data type (MCAR, MAR, MNAR)
+            missing_type_analysis = analyze_missing_data_type(df)
+            
+            # Step 4: Clean data
+            df_clean = clean_data(df)
+            
+            # Step 5: Detect outliers (informational only, not removing them yet)
+            outlier_info = detect_outliers(df_clean, method='iqr', threshold=1.5)
+            
+            # Step 6: Encode categorical variables (using Label Encoding by default)
+            df_encoded, encoding_info = encode_categorical_variables(df_clean, encoding_type='label')
+            
+            # Step 7: Split into train/test BEFORE imputation
+            train_data, test_data = split_train_test(
+                df_encoded, 
+                target_column=target_col,
+                test_size=0.2,
+                random_state=42,
+                stratify=True
             )
             
-            print("\n" + "="*60)
-            print("PREPROCESSING COMPLETE")
-            print("="*60)
+            # Step 8: Save processed data
+            if train_data is not None and test_data is not None:
+                save_processed_data(
+                    train_data, 
+                    test_data, 
+                    output_dir='../data/processed',
+                    prefix=f'preprocessed_{dataset_name.lower().replace(" ", "_")}_'
+                )
+            
+            # Step 9: Test add_random_missing_values function (only for Wine Quality dataset)
+            if dataset_name == "Wine Quality":
+                print("\n" + "="*100)
+                print(f"TESTING ADD_RANDOM_MISSING_VALUES FUNCTION ON {dataset_name.upper()}")
+                print("="*100)
+                
+                # Get complete data (remove existing missing values for testing)
+                df_complete = df_clean.dropna()
+                print(f"\nComplete data shape (no missing values): {df_complete.shape}")
+                
+                # Test with 10% missing values
+                print("\n" + "-"*100)
+                print("Test 1: Adding 10% random missing values (excluding target column)")
+                print("-"*100)
+                df_10pct_missing = add_random_missing_values(
+                    data=df_complete,
+                    missing_percentage=10.0,
+                    random_state=42,
+                    exclude_columns=[target_col]
+                )
+                
+                # Test with 20% missing values
+                print("\n" + "-"*100)
+                print("Test 2: Adding 20% random missing values (excluding target column)")
+                print("-"*100)
+                df_20pct_missing = add_random_missing_values(
+                    data=df_complete,
+                    missing_percentage=20.0,
+                    random_state=123,
+                    exclude_columns=[target_col]
+                )
+                
+                # Analyze the artificial missing data
+                print("\n" + "-"*100)
+                print("Analyzing 20% artificial missing data:")
+                print("-"*100)
+                identify_missing_patterns(df_20pct_missing)
+            
+            print("\n" + "="*100)
+            print(f"PREPROCESSING COMPLETE FOR {dataset_name.upper()}")
+            print("="*100)
             print("\nNext steps:")
             print("1. Apply imputation techniques to train and test sets separately")
             print("2. Fit imputer on train_data only")
             print("3. Transform both train_data and test_data")
             print("4. Proceed with model training")
-
+            print("5. Test imputation quality using artificially created missing data")
+        else:
+            print(f"Failed to load {dataset_name} dataset. Skipping...")
