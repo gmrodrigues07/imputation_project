@@ -45,18 +45,14 @@ def impute_knn(df: pd.DataFrame, n_neighbors: int ):
 
 def impute_missForest(
     df: pd.DataFrame,
-    max_iter: int = 20, # alterei para um valor mais pequeno para testes
+    max_iter: int = 20, # altered to a lower value for faster testing
     n_estimators: int = 100,
     random_state: int = 42
 ) -> pd.DataFrame:
     """
     Impute missing values using MissForest algorithm.
     
-    MissForest uses Random Forest models to impute missing values iteratively.
-    It handles both numerical and categorical variables.
-    
     Parameters:
-    -----------
     df : pd.DataFrame
         DataFrame with missing values to impute.
     max_iter : int, default=10
@@ -67,14 +63,12 @@ def impute_missForest(
         Random seed for reproducibility.
     
     Returns:
-    --------
     pd.DataFrame
         DataFrame with imputed values.
     """
     df = df.copy()
     
     # All columns should already be numeric (encoded by preprocessing)
-    # Use IterativeImputer with RandomForest estimator
     imputer = IterativeImputer(
         estimator=RandomForestRegressor(n_estimators=n_estimators, random_state=random_state, n_jobs=-1),
         max_iter=max_iter,
@@ -83,7 +77,6 @@ def impute_missForest(
         verbose=0
     )
     
-    # Fit and transform on all numeric columns
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     
     if numeric_cols:
@@ -105,12 +98,7 @@ def impute_mice(
     """
     Impute missing values using MICE (Multiple Imputation by Chained Equations) algorithm.
     
-    MICE performs multiple imputations, creating several complete datasets.
-    Each imputation uses an iterative approach where each feature is imputed
-    using the others as predictors.
-    
     Parameters:
-    -----------
     df : pd.DataFrame
         DataFrame with missing values to impute.
     n_imputations : int, default=5
@@ -122,7 +110,6 @@ def impute_mice(
         random_state + i as its seed.
     
     Returns:
-    --------
     List[pd.DataFrame]
         List of n_imputations DataFrames, each with imputed values.
     """
@@ -171,12 +158,10 @@ def pool_mice_results(imputed_datasets: List[pd.DataFrame]) -> pd.DataFrame:
     For categorical columns, takes the mode (most frequent value).
     
     Parameters:
-    -----------
     imputed_datasets : List[pd.DataFrame]
         List of imputed DataFrames from impute_mice().
     
     Returns:
-    --------
     pd.DataFrame
         Single DataFrame with pooled imputed values.
     """

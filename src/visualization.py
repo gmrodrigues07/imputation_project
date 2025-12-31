@@ -29,7 +29,7 @@ class ImputationVisualizer:
         except ValueError:
             return 'gray'
 
-    # PLOTS DE BARRAS 
+    # PLOTS BARS GRAPHS
     def plot_bar_comparison(self, metric='rmse'):
         if self.metrics_summary is None: return
         col_mean = f"{metric.upper()}_mean"
@@ -64,7 +64,7 @@ class ImputationVisualizer:
         plt.savefig(os.path.join(self.output_dir, 'computation_time.png'), dpi=300)
         plt.close()
 
-    # PLOTS DE MONTE CARLO (fases 1 e 2) 
+    # PLOTS MONTE CARLO
     def plot_monte_carlo_stability(self, metric='rmse'):
         if self.mc_df is None: return
         metric_col = next((c for c in self.mc_df.columns if c.lower() == metric.lower()), None)
@@ -131,22 +131,22 @@ class ImputationVisualizer:
         """
         if self.mc_df is None: return
         
-        # Encontra colunas de acurácia
+        # find columns
         acc_cols = [c for c in self.mc_df.columns if c.startswith('accuracy_')]
         if not acc_cols: return
 
-        # Configura subplots: 1 linha, N colunas (uma por classificador)
+        # configure subplots
         n_plots = len(acc_cols)
         fig, axes = plt.subplots(1, n_plots, figsize=(5 * n_plots, 6), sharey=True)
         
-        if n_plots == 1: axes = [axes] # Garante que é lista mesmo se for só 1
+        if n_plots == 1: axes = [axes] # it is a list even with one plot
         
         methods = self.mc_df['method'].unique()
         
         for ax, col in zip(axes, acc_cols):
             clf_name = col.replace('accuracy_', '')
             
-            # Prepara dados para o boxplot: lista de listas [[valores_metodo1], [valores_metodo2]...]
+            # prepare data for boxplot
             data_to_plot = []
             labels = []
             colors = []
@@ -157,10 +157,9 @@ class ImputationVisualizer:
                 labels.append(m)
                 colors.append(self.get_method_color(m, methods))
             
-            # Cria o Boxplot
             bplot = ax.boxplot(data_to_plot, patch_artist=True, labels=labels)
             
-            # Colora as caixas
+            # color the boxes
             for patch, color in zip(bplot['boxes'], colors):
                 patch.set_facecolor(color)
                 patch.set_alpha(0.7)
@@ -172,31 +171,31 @@ class ImputationVisualizer:
             if ax == axes[0]:
                 ax.set_ylabel('Accuracy Distribution')
 
-        plt.suptitle('Downstream Model Stability (Boxplots)', fontsize=14)
+        plt.suptitle('Downstream Model Stability', fontsize=14)
         plt.tight_layout()
-        plt.subplots_adjust(top=0.9) # Espaço para o título principal
+        plt.subplots_adjust(top=0.9)
         
         save_path = os.path.join(self.output_dir, 'downstream_uncertainty.png')
         plt.savefig(save_path, dpi=300)
         plt.close()
         
-    #  PLOT DE SCATTER 
+    #  PLOT SCATTER 
     def plot_scatter_comparison(self, df_raw, imputed_dict, col_x, col_y):
         """
-        Plota Scatter: Pontos Observados a cinza vs Pontos Imputados a cor.
+        Plota Scatter: observed grey vs Imputed points in color.
         """
-        # Verifica se as colunas existem
+        # Verify columns exist
         if col_x not in df_raw.columns or col_y not in df_raw.columns:
             return
 
         mask_missing = df_raw[col_x].isna() | df_raw[col_y].isna()
         mask_observed = ~mask_missing
         
-        # dados observados, a base comum
+        # commun base points
         obs_x = df_raw.loc[mask_observed, col_x]
         obs_y = df_raw.loc[mask_observed, col_y]
 
-        # configurar a subplot. 1 linha, N colunas (uma para cada método)
+        # configure subplots
         methods = sorted(list(imputed_dict.keys()))
         fig, axes = plt.subplots(1, len(methods), figsize=(5 * len(methods), 5), sharey=True)
         if len(methods) == 1: axes = [axes]
@@ -204,10 +203,10 @@ class ImputationVisualizer:
         for ax, method in zip(axes, methods):
             df_filled = imputed_dict[method]
             
-            # 1. Plotar fundo cinza (observados)
+            # plot observed points
             ax.scatter(obs_x, obs_y, color='lightgray', alpha=0.5, label='Observed', s=15)
             
-            # 2. Plotar imputados (missing)
+            # plot imputed points
             imp_x = df_filled.loc[mask_missing, col_x]
             imp_y = df_filled.loc[mask_missing, col_y]
             
@@ -246,35 +245,35 @@ class ImputationVisualizer:
     
     def plot_imputation_vs_downstream(self):
         """
-        Plota RMSE vs Acurácia usando APENAS Matplotlib.
+        Plots RMSE vs Accuracy.
         """
         if self.metrics_summary is None: return
         
-        # 1. Encontrar colunas de acurácia dinamicamente
+        # Find accuracy columns dynamically
         acc_cols = [c for c in self.metrics_summary.columns if c.startswith('accuracy_')]
         if not acc_cols or 'RMSE_mean' not in self.metrics_summary.columns: return
         
         plt.figure(figsize=(10, 7))
         
-        # Marcadores nativos do Matplotlib
+        # Matplotlib markers
         markers = ['o', 's', '^', 'D', 'v'] 
         
-        # Listas para criar legendas manuais
+        # Lists to create manual subtitle legends
         classifier_plots = []
         classifier_names = []
         
-        # 2. Loop para plotar cada classificador
+        # Loop to plot each classifier
         for i, acc_col in enumerate(acc_cols):
             clf_name = acc_col.replace('accuracy_', '')
             marker = markers[i % len(markers)]
             
-            # Ponto "fantasma" preto para a legenda das Formas
+            # Black point for the Shapes legend
             p, = plt.plot([], [], color='k', marker=marker, linestyle='None', 
                           markersize=8, label=clf_name)
             classifier_plots.append(p)
             classifier_names.append(clf_name)
             
-            # Loop pelos métodos (cores)
+            # Loop through methods (colors)
             for _, row in self.metrics_summary.iterrows():
                 method = row['Method']
                 rmse = row['RMSE_mean']
@@ -284,7 +283,7 @@ class ImputationVisualizer:
                 plt.scatter(rmse, acc, color=color, marker=marker, s=120, 
                             edgecolors='k', alpha=0.9, zorder=3)
 
-        # 3. Legenda de Cores (Métodos) - Criação manual
+        # 3. Legend of Colors (Methods) - Manual creation
         method_handles = []
         unique_methods = self.metrics_summary['Method'].unique()
         for m in unique_methods:
@@ -292,7 +291,7 @@ class ImputationVisualizer:
             h, = plt.plot([], [], color=c, marker='o', linestyle='None', markersize=10)
             method_handles.append(h)
             
-        # Adicionar as legendas
+        # Add legends
         first_legend = plt.legend(classifier_plots, classifier_names, title="Classifiers", 
                                   loc='lower right', frameon=True)
         plt.gca().add_artist(first_legend)
