@@ -124,7 +124,7 @@ def run_pipeline(file_path):
         print_progress_bar(0, MC_TEST_ITER, prefix='Progress:', suffix='Complete', length=40)
 
         for i in range(MC_TEST_ITER):
-            df_art, _, true_vals = create_missing_mask(df_complete, MISSING_RATE, random_state=i)
+            df_art, _, true_vals = create_missing_mask(df_complete, MISSING_RATE, random_state=i, target_col=target_col)
             
             for m_name, m_func in METHODS.items():
                 try:

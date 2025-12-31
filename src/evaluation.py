@@ -10,7 +10,7 @@ import time
 from sklearn.model_selection import StratifiedKFold
 
 
-def create_missing_mask(data, missing_percentage=0.2, random_state=53):
+def create_missing_mask(data, missing_percentage=0.2, random_state=53, target_col=None):
     """
     Create a mask of artificial missing values for evaluation purposes.
     
@@ -35,7 +35,7 @@ def create_missing_mask(data, missing_percentage=0.2, random_state=53):
     # Only create missing values in numerical columns
     numerical_cols = data.select_dtypes(include=[np.number]).columns.tolist()
     
-    if target_col in numerical_cols:
+    if target_col and target_col in numerical_cols:
         numerical_cols.remove(target_col)  # PROTECT TARGET!
 
     for col in numerical_cols:
@@ -77,7 +77,6 @@ def evaluate_imputation(original_values, imputed_values, metric='rmse'):
     Evaluate imputation quality by comparing imputed values with original values.
     
     Parameters:
-    -----------
     original_values : dict or pd.Series
         Original values before artificial missingness
     imputed_values : dict or pd.Series
@@ -86,7 +85,6 @@ def evaluate_imputation(original_values, imputed_values, metric='rmse'):
         Metric to use: 'rmse', 'mae', 'r2', 'mape'
         
     Returns:
-    --------
     float
         Evaluation score
     """
@@ -125,7 +123,6 @@ def cross_validate_imputation(data, imputation_method, n_splits=5, missing_perce
     Perform k-fold cross-validation for imputation methods.
     
     Parameters:
-    -----------
     data : pd.DataFrame
         Complete dataset (or with existing missing values)
     imputation_method : object
@@ -145,7 +142,6 @@ def cross_validate_imputation(data, imputation_method, n_splits=5, missing_perce
         Whether to print progress
         
     Returns:
-    --------
     dict
         Dictionary containing results for each fold and aggregate statistics
     """
@@ -246,7 +242,7 @@ def cross_validate_imputation(data, imputation_method, n_splits=5, missing_perce
         if verbose:
             print(f"Fold time: {fold_time:.2f}s")
     
-    # Compute aggregate statistics
+    # Compute statistics
     if verbose:
         print(f"\n{'='*60}")
         print("AGGREGATE RESULTS")
@@ -278,7 +274,7 @@ def cross_validate_imputation(data, imputation_method, n_splits=5, missing_perce
     
     return results
 
-# might need to eliminate this function later because we will implement it on the main.py file due to the monte carlo simulation
+# might need to eliminate this function later because we will implement it on the main.py file due to the monte carlo simulation...
 def compare_imputation_methods(data, methods_dict, n_splits=5, missing_percentage=0.2,
                                stratify_column=None, metrics=['rmse', 'mae'], 
                                random_state=53):
@@ -286,7 +282,6 @@ def compare_imputation_methods(data, methods_dict, n_splits=5, missing_percentag
     Compare multiple imputation methods using cross-validation.
     
     Parameters:
-    -----------
     data : pd.DataFrame
         Complete dataset
     methods_dict : dict
@@ -303,7 +298,6 @@ def compare_imputation_methods(data, methods_dict, n_splits=5, missing_percentag
         Random seed
         
     Returns:
-    --------
     pd.DataFrame
         Comparison table of methods and their performance
     """
@@ -356,11 +350,9 @@ def simple_imputation_comparison(data, imputation_functions, missing_percentage=
     """
     Simple comparison of imputation methods without cross-validation.
     
-    Creates artificial missing values, imputes them with different methods,
-    and calculates MSE/RMSE compared to the real values.
+    Creates artificial missing values, imputes them with different methods, and calculates MSE/RMSE compared to the real values.
     
     Parameters:
-    -----------
     data : pd.DataFrame
         Complete dataset (without missing values, or will use complete cases)
     imputation_functions : dict
@@ -372,21 +364,10 @@ def simple_imputation_comparison(data, imputation_functions, missing_percentage=
         Random seed for reproducibility
         
     Returns:
-    --------
     pd.DataFrame
         Comparison table with MSE and RMSE for each method
-        
-    Example:
-    --------
-    >>> from imputation_techniques import impute_mean, impute_knn, impute_mice, pool_mice_results
-    >>> 
-    >>> methods = {
-    >>>     'Mean': impute_mean,
-    >>>     'KNN_5': lambda df: impute_knn(df, n_neighbors=5),
-    >>>     'MICE': lambda df: pool_mice_results(impute_mice(df, n_imputations=3))
-    >>> }
-    >>> results = simple_imputation_comparison(data, methods, missing_percentage=0.2)
     """
+
     print("\n" + "="*100)
     print("SIMPLE IMPUTATION COMPARISON")
     print("="*100)
@@ -479,11 +460,7 @@ def evaluate_downstream_task(df_imputed, target_col, cv=5, metrics=['accuracy', 
     """
     Evaluate imputation quality by training classifiers on imputed data.
     
-    Trains multiple classifiers and evaluates them using various metrics
-    to assess the practical utility of the imputed data.
-    
     Parameters:
-    -----------
     df_imputed : pd.DataFrame
         Imputed dataset
     target_col : str
@@ -494,10 +471,10 @@ def evaluate_downstream_task(df_imputed, target_col, cv=5, metrics=['accuracy', 
         List of metrics to compute: 'accuracy', 'precision', 'recall', 'f1'
         
     Returns:
-    --------
     dict
         Nested dictionary: {classifier_name: {metric: score}}
     """
+
     if target_col not in df_imputed.columns:
         return {}
 

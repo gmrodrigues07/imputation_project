@@ -12,12 +12,10 @@ def load_data(filepath):
     Load the  dataset from CSV file.
     
     Parameters:
-    -----------
     filepath : str
         Path to the CSV file
         
     Returns:
-    --------
     pd.DataFrame
         Loaded dataset
     """
@@ -40,12 +38,10 @@ def explore_data(data):
     missing values, and data types.
     
     Parameters:
-    -----------
     data : pd.DataFrame
         Input dataset
         
     Returns:
-    --------
     dict
         Dictionary containing exploration results
     """
@@ -56,18 +52,6 @@ def explore_data(data):
     exploration_results = {}
     
     # Basic information
-    #print("\n" + "="*50)
-    #print("DATASET OVERVIEW")
-    #print("="*50)
-    #print(f"Number of rows: {data.shape[0]}")
-    #print(f"Number of columns: {data.shape[1]}")
-    #print(f"\nColumn names:\n{list(data.columns)}")
-    
-    # Data types
-    #print("\n" + "="*50)
-    #print("DATA TYPES")
-    #print("="*50)
-    #print(data.dtypes)
     exploration_results['dtypes'] = data.dtypes
     
     # Missing values analysis
@@ -94,9 +78,6 @@ def explore_data(data):
         exploration_results['missing_values'] = None
     
     # Basic statistics for numerical columns
-    #print("\n" + "="*50)
-    #print("NUMERICAL COLUMNS STATISTICS")
-    #print("="*50)
     numerical_cols = data.select_dtypes(include=[np.number]).columns.tolist()
     if numerical_cols:
         #print(data[numerical_cols].describe())
@@ -121,16 +102,6 @@ def explore_data(data):
         exploration_results['categorical_cols'] = []
     
     # Sample of the data
-    #print("\n" + "="*50)
-    #print("FIRST 5 ROWS")
-    #print("="*50)
-    #print(data.head())
-    
-    #print("\n" + "="*50)
-    #print("LAST 5 ROWS")
-    #print("="*50)
-    #print(data.tail())
-    
     exploration_results['shape'] = data.shape
     exploration_results['columns'] = list(data.columns)
     
@@ -142,15 +113,14 @@ def identify_missing_patterns(data):
     Identify patterns in missing data (which columns/rows have missing values).
     
     Parameters:
-    -----------
     data : pd.DataFrame
         Input dataset
         
     Returns:
-    --------
     dict
         Dictionary containing missing data patterns
     """
+
     if data is None:
         print("Error: No data provided")
         return None
@@ -171,7 +141,6 @@ def identify_missing_patterns(data):
     # Columns with missing values
     cols_with_missing = data.isnull().any(axis=0).sum()
     patterns['cols_with_missing'] = cols_with_missing
-    #print(f"\nColumns with missing values: {cols_with_missing} out of {len(data.columns)}")
     
     # Total missing values
     total_missing = data.isnull().sum().sum()
@@ -191,17 +160,15 @@ def analyze_missing_data_type(data, alpha=0.05):
     This function performs statistical tests to help identify the missingness mechanism:
     - Little's MCAR test (approximation using chi-square)
     - Correlation analysis between missingness indicators and observed values
-    - T-tests/Chi-square tests comparing observed values between complete and incomplete cases
+    - Tests comparing observed values between complete and incomplete cases
     
     Parameters:
-    -----------
     data : pd.DataFrame
         Input dataset
     alpha : float, default=0.05
         Significance level for statistical tests
         
     Returns:
-    --------
     dict
         Dictionary containing analysis results and interpretations
     """
@@ -221,24 +188,15 @@ def analyze_missing_data_type(data, alpha=0.05):
     if not cols_with_missing:
         print("\nNo missing values found. Analysis not needed.")
         return None
-    
-    #print(f"\nAnalyzing missing data mechanism for columns: {cols_with_missing}")
-    
-    # 1. Create missingness indicator variables
-    #print("\n" + "-"*50)
-    #print("1. MISSINGNESS INDICATORS")
-    #print("-"*50)
+        
+    # Create missingness indicator variables
     
     missing_indicators = pd.DataFrame()
     for col in cols_with_missing:
         missing_indicators[f'{col}_missing'] = data[col].isnull().astype(int)
-    
-    #print(f"Created {len(cols_with_missing)} missingness indicator variables")
-    
-    # 2. Correlation between missingness and observed values
-    #print("\n" + "-"*50)
+        
+    # Correlation between missingness and observed values
     print("\n\t\t CORRELATION ANALYSIS")
-    #print("-"*50)
     print("\nTesting if missingness in one variable is related to observed values in other variables")
     
     correlation_results = []
@@ -296,10 +254,8 @@ def analyze_missing_data_type(data, alpha=0.05):
         print("\nNo significant correlations found between missingness and observed values")
         analysis_results['correlations'] = None
     
-    # 3. Compare distributions: complete vs incomplete cases
-    #print("\n" + "-"*50)
+    # Compare distributions: complete vs incomplete cases
     print("\n\t\t DISTRIBUTION COMPARISON ")
-    #print("-"*50)
     print("\nTesting if observed values differ between complete and incomplete cases")
     
     ttest_results = []
@@ -345,10 +301,8 @@ def analyze_missing_data_type(data, alpha=0.05):
         print("\nNo significant differences in distributions (suggests MCAR)")
         analysis_results['ttests'] = None
     
-    # 4. Provide interpretation
-    #print("\n" + "-"*50)
+    # Provide interpretation
     print("\n\t\t INTERPRETATION\n")
-    #print("-"*50)
     
     interpretation = []
     
@@ -384,16 +338,13 @@ def analyze_missing_data_type(data, alpha=0.05):
 
 def clean_data(data):
     """
-    Clean the dataset by handling duplicates, standardizing missing values,
-    and basic data quality checks.
+    Clean the dataset by handling duplicates, standardizing missing values,and basic data quality checks.
     
     Parameters:
-    -----------
     data : pd.DataFrame
         Input dataset
         
     Returns:
-    --------
     pd.DataFrame
         Cleaned dataset
     """
@@ -401,25 +352,15 @@ def clean_data(data):
         print("Error: No data provided")
         return None
     
-    # commented out prints for cleaner output
-    #print("\n" + "="*50)
-    #print("DATA CLEANING")
-    #print("="*50)
     
     data_clean = data.copy()
     
-    # 1. Check for duplicate rows
-    #print("\n1. Checking for duplicate rows...")
+    # Check for duplicate rows
     n_duplicates = data_clean.duplicated().sum()
     if n_duplicates > 0:
-        #print(f"   Found {n_duplicates} duplicate rows")
         data_clean = data_clean.drop_duplicates()
-        #print(f"   Removed duplicates. New shape: {data_clean.shape}")
-    #else:
-        #print("   No duplicate rows found")
     
-    # 2. Standardize missing value representations
-    #print("\n2. Standardizing missing value representations...")
+    # Standardize missing value representations
     
     # Replace common missing value representations with NaN
     missing_values = ['', ' ', 'NA', 'N/A', 'na', 'n/a', 'NaN', 'nan', 'None', 'none', 'NULL', 'null', '?', '-', '--', 'missing', 'MISSING']
@@ -436,11 +377,8 @@ def clean_data(data):
             data_clean[col] = data_clean[col].replace(missing_values, np.nan)
             # Replace 'nan' string back to NaN
             data_clean[col] = data_clean[col].replace('nan', np.nan)
-    
-    #print(f"   Standardized missing values across {len(data_clean.columns)} columns")
-    
-    # 3. Remove ID and dataset columns (not useful for modeling)
-    #print("\n3. Checking for ID and dataset columns...")
+        
+    # Remove ID and dataset columns (not useful for modeling)
     cols_to_remove = []
     if ('id' or 'Id') in data_clean.columns.str.lower():
         id_cols = [col for col in data_clean.columns if col.lower() == 'id']
@@ -450,26 +388,17 @@ def clean_data(data):
     
     if cols_to_remove:
         data_clean = data_clean.drop(columns=cols_to_remove)
-        #print(f"   Removed column(s): {cols_to_remove}")
-    #else:
-        #print("   No ID or dataset columns found")
     
-    # 4. Check for constant columns (all same value)
-    #print("\n4. Checking for constant columns...")
+    # Check for constant columns 
     constant_cols = []
     for col in data_clean.columns:
         if data_clean[col].nunique(dropna=True) <= 1:
             constant_cols.append(col)
     
     if constant_cols:
-        #print(f"   Found {len(constant_cols)} constant columns: {constant_cols}")
         data_clean = data_clean.drop(columns=constant_cols)
-        #print(f"   Removed constant columns")
-    #else:
-        #print("   No constant columns found")
     
-    # 5. Check data types and inconsistencies
-    #print("\n5. Checking data type consistency...")
+    # Check data types and inconsistencies
     for col in data_clean.columns:
         if data_clean[col].dtype == 'object':
             # Try to convert to numeric if possible
@@ -478,11 +407,9 @@ def clean_data(data):
                 # If more than 50% can be converted, it's likely a numeric column
                 if numeric_col.notna().sum() / len(data_clean) > 0.5:
                     data_clean[col] = numeric_col
-                    #print(f"   Converted '{col}' to numeric")
             except:
                 pass
     
-    #print(f"\nCleaning complete. Final shape: {data_clean.shape}")
     
     return data_clean
 
@@ -492,7 +419,6 @@ def detect_outliers(data, method='iqr', threshold=1.5):
     Detect outliers in numerical columns using IQR or Z-score method.
     
     Parameters:
-    -----------
     data : pd.DataFrame
         Input dataset
     method : str
@@ -501,10 +427,10 @@ def detect_outliers(data, method='iqr', threshold=1.5):
         Threshold multiplier (1.5 for IQR, 3.0 for Z-score typically)
         
     Returns:
-    --------
     dict
         Dictionary containing outlier information per column
     """
+
     if data is None:
         print("Error: No data provided")
         return None
@@ -562,7 +488,6 @@ def encode_categorical_variables(data, encoding_type='label', drop_first=True):
     Encode categorical variables using Label Encoding or One-Hot Encoding.
     
     Parameters:
-    -----------
     data : pd.DataFrame
         Input dataset
     encoding_type : str
@@ -572,7 +497,6 @@ def encode_categorical_variables(data, encoding_type='label', drop_first=True):
         For one-hot encoding, whether to drop first category to avoid multicollinearity
         
     Returns:
-    --------
     tuple
         (encoded_data, encoding_info)
     """
@@ -600,7 +524,7 @@ def encode_categorical_variables(data, encoding_type='label', drop_first=True):
         
         # Decide encoding strategy
         if encoding_type == 'auto':
-            # Use label encoding for high cardinality (>10), one-hot for low
+            # Use label encoding for high cardinality 
             if n_unique > 10:
                 strategy = 'label'
             else:
@@ -623,7 +547,6 @@ def encode_categorical_variables(data, encoding_type='label', drop_first=True):
             }
             
         elif strategy == 'onehot':
-            # One-Hot Encoding
             dummies = pd.get_dummies(data_encoded[col], prefix=col, drop_first=drop_first, dtype=int)
             
             # Drop original column and add dummy columns
@@ -642,11 +565,9 @@ def encode_categorical_variables(data, encoding_type='label', drop_first=True):
 
 def split_train_test(data, target_column=None, test_size=0.2, random_state=42, stratify=True):
     """
-    Split data into training and testing sets.
-    IMPORTANT: This should be done BEFORE imputation to avoid data leakage.
+    Split data into training and testing sets. This is done before imputation to avoid data leakage.
     
     Parameters:
-    -----------
     data : pd.DataFrame
         Input dataset
     target_column : str, optional
@@ -659,10 +580,10 @@ def split_train_test(data, target_column=None, test_size=0.2, random_state=42, s
         Whether to use stratified split (only if target_column provided)
         
     Returns:
-    --------
     tuple
         (train_data, test_data)
     """
+
     if data is None:
         print("Error: No data provided")
         return None, None
@@ -703,7 +624,6 @@ def save_processed_data(train_data, test_data, output_dir='../data/processed', p
     Save processed training and testing data to CSV files.
     
     Parameters:
-    -----------
     train_data : pd.DataFrame
         Training dataset
     test_data : pd.DataFrame
@@ -714,10 +634,10 @@ def save_processed_data(train_data, test_data, output_dir='../data/processed', p
         Prefix for the output filenames
         
     Returns:
-    --------
     tuple
         (train_filepath, test_filepath)
     """
+    
     # Create output directory if it doesn't exist
     script_dir = os.path.dirname(os.path.abspath(__file__))
     full_output_dir = os.path.join(script_dir, output_dir)
@@ -745,13 +665,9 @@ def save_processed_data(train_data, test_data, output_dir='../data/processed', p
 
 def add_random_missing_values(data, missing_percentage, random_state=42, exclude_columns=None):
     """
-    Add random missing values to a dataset.
-    
-    This function randomly introduces missing values (NaN) to specified columns 
-    in the dataset to simulate missing data scenarios for imputation testing.
+    Add random missing values to a dataset. this function introduces NaNs randomly to simulate missing data.
     
     Parameters:
-    -----------
     data : pd.DataFrame
         Input dataset to add missing values to
     missing_percentage : float
@@ -761,25 +677,12 @@ def add_random_missing_values(data, missing_percentage, random_state=42, exclude
         Random seed for reproducible results
     exclude_columns : list, optional
         List of column names to exclude from having missing values added
-        (e.g., target variables or ID columns)
         
     Returns:
-    --------
     pd.DataFrame
         Dataset with randomly added missing values
-        
-    Examples:
-    ---------
-    >>> # Add 15% missing values to all columns except the target
-    >>> df_with_missing = add_random_missing_values(
-    ...     data=df, 
-    ...     missing_percentage=15.0, 
-    ...     exclude_columns=['target']
-    ... )
-    
-    >>> # Add 5% missing values to all columns
-    >>> df_with_missing = add_random_missing_values(df, 5.0)
     """
+
     if data is None:
         print("Error: No data provided")
         return None
@@ -794,7 +697,7 @@ def add_random_missing_values(data, missing_percentage, random_state=42, exclude
     # Set random seed for reproducibility
     np.random.seed(random_state)
     
-    # Get columns to modify (exclude specified columns)
+    # Get columns to modify 
     columns_to_modify = data.columns.tolist()
     if exclude_columns:
         columns_to_modify = [col for col in columns_to_modify if col not in exclude_columns]
@@ -859,7 +762,7 @@ def add_random_missing_values(data, missing_percentage, random_state=42, exclude
 
 
 if __name__ == "__main__":
-    # Define file paths (relative to src directory)
+    # Define file paths
     script_dir = os.path.dirname(os.path.abspath(__file__))
     heart_disease_path = os.path.join(script_dir, "..", "data", "raw", "heart_disease_uci.csv")
     wineqt_path = os.path.join(script_dir, "..", "data", "raw", "WineQT.csv")
@@ -899,25 +802,25 @@ if __name__ == "__main__":
         df = load_data(data_path)
         
         if df is not None:
-            # Step 1: Explore data
+            # Explore data
             exploration_results = explore_data(df)
             
-            # Step 2: Identify missing patterns
+            # Identify missing patterns
             missing_patterns = identify_missing_patterns(df)
             
-            # Step 3: Analyze missing data type (MCAR, MAR, MNAR)
+            # Analyze missing data type (MCAR, MAR, MNAR)
             missing_type_analysis = analyze_missing_data_type(df)
             
-            # Step 4: Clean data
+            # Clean data
             df_clean = clean_data(df)
             
-            # Step 5: Detect outliers (informational only, not removing them yet)
+            # Detect outliers
             outlier_info = detect_outliers(df_clean, method='iqr', threshold=1.5)
             
-            # Step 6: Encode categorical variables (using Label Encoding by default)
+            # Encode categorical variables
             df_encoded, encoding_info = encode_categorical_variables(df_clean, encoding_type='label')
             
-            # Step 7: Split into train/test BEFORE imputation
+            # Split into train/test before imputation
             train_data, test_data = split_train_test(
                 df_encoded, 
                 target_column=target_col,
@@ -926,7 +829,7 @@ if __name__ == "__main__":
                 stratify=True
             )
             
-            # Step 8: Save processed data
+            # Save processed data
             if train_data is not None and test_data is not None:
                 save_processed_data(
                     train_data, 
@@ -935,13 +838,13 @@ if __name__ == "__main__":
                     prefix=f'preprocessed_{dataset_name.lower().replace(" ", "_")}_'
                 )
             
-            # Step 9: Test add_random_missing_values function (only for Wine Quality dataset)
+            # Test add_random_missing_values function (only for Wine Quality dataset)
             if dataset_name == "Wine Quality":
                 print("\n" + "="*100)
                 print(f"TESTING ADD_RANDOM_MISSING_VALUES FUNCTION ON {dataset_name.upper()}")
                 print("="*100)
                 
-                # Get complete data (remove existing missing values for testing)
+                # Get complete data
                 df_complete = df_clean.dropna()
                 print(f"\nComplete data shape (no missing values): {df_complete.shape}")
                 
