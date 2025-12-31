@@ -8,7 +8,6 @@ from sklearn.preprocessing import StandardScaler # to use for the logistic regre
 from sklearn.pipeline import make_pipeline # to use for the logistic regression as well
 import time
 from sklearn.model_selection import StratifiedKFold
-from sklearn.preprocessing import FunctionTransformer
 
 
 def create_missing_mask(data, missing_percentage=0.2, random_state=53):
@@ -16,7 +15,6 @@ def create_missing_mask(data, missing_percentage=0.2, random_state=53):
     Create a mask of artificial missing values for evaluation purposes.
     
     Parameters:
-    -----------
     data : pd.DataFrame
         Complete dataset
     missing_percentage : float
@@ -25,7 +23,6 @@ def create_missing_mask(data, missing_percentage=0.2, random_state=53):
         Random seed for reproducibility
         
     Returns:
-    --------
     tuple
         (data_with_missing, missing_mask, original_values)
     """
@@ -39,7 +36,7 @@ def create_missing_mask(data, missing_percentage=0.2, random_state=53):
     numerical_cols = data.select_dtypes(include=[np.number]).columns.tolist()
     
     if target_col in numerical_cols:
-        numerical_cols.remove(target_col)  # ✅ PROTECT TARGET!
+        numerical_cols.remove(target_col)  # PROTECT TARGET!
 
     for col in numerical_cols:
         # Skip columns that already have too many missing values
@@ -123,9 +120,7 @@ def evaluate_imputation(original_values, imputed_values, metric='rmse'):
         raise ValueError(f"Unknown metric: {metric}")
 
 # might need to eliminate this function later because we will implement it on the main.py file due to the monte carlo simulation
-def cross_validate_imputation(data, imputation_method, n_splits=5, missing_percentage=0.2, 
-                               stratify_column=None, metrics=['rmse', 'mae', 'r2'], 
-                               random_state=53, verbose=True):
+def cross_validate_imputation(data, imputation_method, n_splits=5, missing_percentage=0.2, stratify_column=None, metrics=['rmse', 'mae', 'r2'], random_state=53, verbose=True):
     """
     Perform k-fold cross-validation for imputation methods.
     
@@ -545,7 +540,7 @@ if __name__ == "__main__":
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
     from imputation_techniques import impute_mean, impute_median, impute_knn, impute_missForest, impute_mice, pool_mice_results
     
-    # ✅ ALL IMPORTS
+    # ALL IMPORTS
     from sklearn.metrics import make_scorer, f1_score
     from sklearn.model_selection import cross_validate, StratifiedKFold
     from sklearn.preprocessing import LabelEncoder
@@ -635,17 +630,25 @@ if __name__ == "__main__":
             print(f"\nERROR: File not found at {data_path}")
             continue
 
-        # Part 1: Simple imputation comparison
-        print("\n" + "#"*100)
-        print("PART 1: IMPUTATION QUALITY EVALUATION (MSE/RMSE/MAE)")
-        print("#"*100)
+        # Simple imputation comparison
+        print("\n" + "="*100)
+        print("IMPUTATION QUALITY EVALUATION (MSE/RMSE/MAE)")
+        print("="*100)
         
         imputation_results_1 = simple_imputation_comparison(
             data=data,
             imputation_functions=methods,
-            missing_percentage=0.1,
+            missing_percentage=0.2,
             random_state=42
         )
+
+        # 10 ITERATIONS - ACCURACY + F1
+        print("\n\n" + "="*100)
+        print("DOWNSTREAM TASK (ACCURACY + F1, 10 ITERATIONS)")
+        print("="*100)
+
+        n_iterations = 10
+        base_seed = 42
 
         classifiers = {
             'LogisticRegression': make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000, n_jobs=-1, random_state=53)),
@@ -653,65 +656,252 @@ if __name__ == "__main__":
             'XGBoost': XGBClassifier(n_estimators=50, random_state=53, n_jobs=-1, eval_metric='logloss')
         }
 
-        # ✅ TRUE CV PIPELINE (replace entire Part 2)
-        from sklearn.compose import ColumnTransformer
-        from sklearn.pipeline import Pipeline
+        all_results = []
 
-        print("\n\n" + "#"*100)
-        print("PART 2: TRUE CROSS-VALIDATED PIPELINES")
-        print("#"*100)
-
-        # Create pipelines for EACH method
-        pipelines = {}
-
-        # 1. No Handling → just dropna in preprocessing
-        pipelines['No Handling'] = Pipeline([
-            ('dropna', FunctionTransformer(lambda X: X.dropna())),
-            ('clf', classifiers['XGBoost'])
-        ])
-
-        # 2. XGBoost Native → raw data
-        pipelines['XGBoost Native'] = Pipeline([
-            ('clf', classifiers['XGBoost'])
-        ])
-
-        # 3. Imputation pipelines
-        for method_name, imputation_func in methods.items():
-            pipelines[method_name] = Pipeline([
-                ('impute', FunctionTransformer(imputation_func)),
-                ('clf', classifiers['XGBoost'])
-            ])
-
-        # TRUE 10-FOLD CV (no leakage!)
-        results = {}
-        for name, pipe in pipelines.items():
-            print(f"CV {name}...")
+        for iteration in range(n_iterations):
+            rs = base_seed + iteration
+            print(f"\n--- Iteration {iteration+1}/{n_iterations} (seed={rs}) ---")
             
-            # Encode y ONCE (outside CV)
-            y_encoded = data[target_col]
-            if len(np.unique(y_encoded)) > 2:
-                unique_classes = sorted(np.unique(y_encoded))
-                y_encoded = pd.Categorical(y_encoded, categories=unique_classes).codes
+            # Create missing values for this iteration (only for Wine dataset)
+            data_iter = data.copy()
+            if dataset_name.lower().startswith('wine') or target_col == 'quality':
+                data_iter, _, _ = create_missing_mask(data_iter, missing_percentage=0.2, random_state=rs)
+            # else: keep original data (do not create artificial missing values)
             
-            X = data.drop(columns=[target_col]).select_dtypes(include=[np.number])
-            
-            # 10-fold stratified CV
-            skf = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
-            cv_scores = cross_validate(pipe, X, y_encoded, cv=skf,
-                                    scoring={'accuracy': 'accuracy', 'f1': f1_scorer},
-                                    return_train_score=False)
-            
-            results[name] = {
-                'accuracy_mean': np.mean(cv_scores['test_accuracy']),
-                'accuracy_std': np.nanstd(cv_scores['test_accuracy']),
-                'f1_mean': np.mean(cv_scores['test_f1']),
-                'f1_std': np.nanstd(cv_scores['test_f1'])
-            }
+            # NO HANDLING
+            data_no_handling = data_iter.dropna()
+            if len(data_no_handling) > 10:
+                X = data_no_handling.drop(columns=[target_col]).select_dtypes(include=[np.number])
+                y = data_no_handling[target_col]
+                
+                # FIXED LABEL ENCODING
+                if y.dtype == 'object' or y.dtype.name == 'category':
+                    le = LabelEncoder()
+                    y = le.fit_transform(y)
+                elif len(np.unique(y)) > 2:
+                    unique_classes = sorted(np.unique(y))
+                    y = pd.Categorical(y, categories=unique_classes).codes
+                else:
+                    y = y.astype(int)
+                
+                skf = StratifiedKFold(n_splits=min(5, len(np.unique(y))), shuffle=True, random_state=53)
+                
+                for clf_name, clf in classifiers.items():
+                    try:
+                        cvres = cross_validate(clf, X, y, cv=skf,
+                                               scoring={'accuracy': 'accuracy', 'f1': f1_scorer},
+                                               return_train_score=False)
+                        
+                        all_results.append({
+                            'iteration': iteration, 'Method': 'No Handling', 'Classifier': clf_name,
+                            'Metric': 'accuracy', 'Mean': np.mean(cvres['test_accuracy'])
+                        })
+                        all_results.append({
+                            'iteration': iteration, 'Method': 'No Handling', 'Classifier': clf_name,
+                            'Metric': 'f1', 'Mean': np.mean(cvres['test_f1'])
+                        })
+                    except:
+                        all_results.extend([{
+                            'iteration': iteration, 'Method': 'No Handling', 'Classifier': clf_name,
+                            'Metric': m, 'Mean': np.nan
+                        } for m in ['accuracy', 'f1']])
 
-        # PERFECT TABLE
-        results_df = pd.DataFrame(results).T.round(4)
-        print("\n🏆 TRUE CROSS-VALIDATED RESULTS:")
-        print(results_df[['accuracy_mean', 'accuracy_std', 'f1_mean', 'f1_std']])
+            # XGBOOST NATIVE (handles missing values)
+            X = data_iter.drop(columns=[target_col]).select_dtypes(include=[np.number])
+            y = data_iter[target_col]
 
-        # Save
-        results_df.to_csv(os.path.join(script_dir, '..', 'results', f"{dataset_name}_true_cv_results.csv"))
+            # FIXED LABEL ENCODING
+            if y.dtype == 'object' or y.dtype.name == 'category':
+                le = LabelEncoder()
+                y = le.fit_transform(y)
+            elif len(np.unique(y)) > 2:
+                unique_classes = sorted(np.unique(y))
+                y = pd.Categorical(y, categories=unique_classes).codes
+            else:
+                y = y.astype(int)
+
+            skf = StratifiedKFold(n_splits=min(5, len(np.unique(y))), shuffle=True, random_state=53)
+            try:
+                cvres = cross_validate(classifiers['XGBoost'], X, y, cv=skf,
+                                       scoring={'accuracy': 'accuracy', 'f1': f1_scorer},
+                                       return_train_score=False)
+                
+                all_results.append({
+                    'iteration': iteration, 'Method': 'XGBoost Native', 'Classifier': 'XGBoost',
+                    'Metric': 'accuracy', 'Mean': np.mean(cvres['test_accuracy'])
+                })
+                all_results.append({
+                    'iteration': iteration, 'Method': 'XGBoost Native', 'Classifier': 'XGBoost',
+                    'Metric': 'f1', 'Mean': np.mean(cvres['test_f1'])
+                })
+            except:
+                all_results.extend([{
+                    'iteration': iteration, 'Method': 'XGBoost Native', 'Classifier': 'XGBoost',
+                    'Metric': m, 'Mean': np.nan
+                } for m in ['accuracy', 'f1']])
+            
+            # IMPUTATION METHODS
+            for method_name, imputation_func in methods.items():
+                try:
+                    data_imputed = imputation_func(data_iter.copy())
+                    X_imp = data_imputed.drop(columns=[target_col]).select_dtypes(include=[np.number])
+                    y_imp = data_imputed[target_col]
+                    
+                    if y_imp.dtype == 'object' or y_imp.dtype.name == 'category':
+                        le = LabelEncoder()
+                        y_imp = le.fit_transform(y_imp)
+                    
+                    y_imp_use = y_imp.copy()
+                    if len(np.unique(y_imp)) > 2:
+                        unique_classes = sorted(np.unique(y_imp))
+                        y_imp_use = pd.Categorical(y_imp, categories=unique_classes).codes
+                    
+                    skf = StratifiedKFold(n_splits=min(5, len(np.unique(y_imp_use))), shuffle=True, random_state=53)
+                    
+                    for clf_name, clf in classifiers.items():
+                        try:
+                            cvres = cross_validate(clf, X_imp, y_imp_use, cv=skf,
+                                                   scoring={'accuracy': 'accuracy', 'f1': f1_scorer},
+                                                   return_train_score=False)
+                            
+                            all_results.append({
+                                'iteration': iteration, 'Method': method_name, 'Classifier': clf_name,
+                                'Metric': 'accuracy', 'Mean': np.mean(cvres['test_accuracy'])
+                            })
+                            all_results.append({
+                                'iteration': iteration, 'Method': method_name, 'Classifier': clf_name,
+                                'Metric': 'f1', 'Mean': np.mean(cvres['test_f1'])
+                            })
+                        except:
+                            all_results.extend([{
+                                'iteration': iteration, 'Method': method_name, 'Classifier': clf_name,
+                                'Metric': m, 'Mean': np.nan
+                            } for m in ['accuracy', 'f1']])
+                except:
+                    for clf_name in classifiers.keys():
+                        all_results.extend([{
+                            'iteration': iteration, 'Method': method_name, 'Classifier': clf_name,
+                            'Metric': m, 'Mean': np.nan
+                        } for m in ['accuracy', 'f1']])
+        
+        # SAVE RESULTS
+        results_df = pd.DataFrame(all_results)
+        results_path = os.path.join(script_dir, '..', 'results', f"{dataset_name.replace(' ','_')}_10iter_results.csv")
+        os.makedirs(os.path.dirname(results_path), exist_ok=True)
+        results_df.to_csv(results_path, index=False)
+        print(f"\n FULL RESULTS SAVED: {results_path} ({len(results_df)} rows)")
+        
+        # SUMMARY TABLES
+        print("\n" + "="*50)
+        print("FINAL RESULTS (MEAN ± STD, 10 ITERATIONS)")
+        print("="*50)
+        
+        summary_df = results_df.groupby(['Method', 'Classifier', 'Metric']).agg({
+            'Mean': ['mean', 'std']
+        }).round(4).reset_index()
+        summary_df.columns = ['Method', 'Classifier', 'Metric', 'Mean', 'Std']
+        
+        # ACCURACY TABLE
+        accuracy_table = summary_df[summary_df['Metric'] == 'accuracy'].pivot(
+            index='Method', columns='Classifier', values='Mean'
+        ).round(4)
+        print("\n ACCURACY:")
+        print(accuracy_table)
+        
+        # F1 TABLE
+        f1_table = summary_df[summary_df['Metric'] == 'f1'].pivot(
+            index='Method', columns='Classifier', values='Mean'
+        ).round(4)
+        print("\n F1-SCORE:")
+        print(f1_table)
+        
+        # BEST METHOD
+        if 'XGBoost' in accuracy_table.columns:
+            best_accuracy = accuracy_table['XGBoost'].max()
+            best_method = accuracy_table['XGBoost'].idxmax()
+            print(f"\n BEST: {best_method} XGBoost = {best_accuracy:.4f}")
+        
+        # Save summary
+        summary_path = os.path.join(script_dir, '..', 'results', f"{dataset_name.replace(' ','_')}_10iter_summary.csv")
+        summary_df.to_csv(summary_path, index=False)
+        print(f"\n SUMMARY SAVED: {summary_path}")
+        
+
+        # PLOT RMSE vs ACCURACY (Graphic)
+        print("\n" + "="*100)
+        print("PART 3: GENERATING RMSE vs ACCURACY PLOT")
+        print("="*100)
+
+        import matplotlib.pyplot as plt
+
+        # prepare RMSE
+        rmse_data = imputation_results_1[['Method', 'RMSE']].copy()
+
+        # prepare accuracy
+        acc_data = summary_df[summary_df['Metric'] == 'accuracy'].copy()
+        acc_data = acc_data[['Method', 'Classifier', 'Mean']]
+        acc_data.rename(columns={'Mean': 'Accuracy'}, inplace=True)
+
+        plot_df = pd.merge(acc_data, rmse_data, on='Method', how='inner')
+
+        plt.figure(figsize=(10, 7))
+        plt.style.use('ggplot')
+
+        # define shape for each classifier
+        unique_classifiers = plot_df['Classifier'].unique()
+        unique_methods = plot_df['Method'].unique()
+
+        markers = ['o', 's', '^', 'D', 'v', 'P']
+        clf_markers = {clf: markers[i % len(markers)] for i, clf in enumerate(unique_classifiers)}
+
+        # define the color for each imputation method
+        colors = plt.cm.tab10(np.linspace(0, 1, len(unique_methods)))
+        method_colors = {m: colors[i] for i, m in enumerate(unique_methods)}
+
+        # plot the points
+        for clf in unique_classifiers:
+            subset = plot_df[plot_df['Classifier'] == clf]
+            marker = clf_markers[clf]
+
+            for _, row in subset.iterrows():
+                method = row['Method']
+                rmse_val = row['RMSE']
+                acc_val = row['Accuracy']
+
+                plt.scatter(
+                    rmse_val,
+                    acc_val,
+                    color=method_colors[method],
+                    marker=marker,
+                    s=150,
+                    edgecolors='k',
+                    alpha=0.9,
+                    zorder=3
+                )
+
+        # methods and their colors
+        method_handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=method_colors[m], markersize=10, label=m)
+                          for m in unique_methods]
+        legend1 = plt.legend(handles=method_handles, title="Imputation Method", loc='upper right', frameon=True)
+        plt.gca().add_artist(legend1)
+
+        # classifiers
+        clf_handles = [plt.Line2D([0], [0], marker=clf_markers[c], color='w', markerfacecolor='k', markersize=10, label=c)
+                       for c in unique_classifiers]
+        plt.legend(handles=clf_handles, title="Classifier", loc='lower right', frameon=True)
+
+        plt.title(f'Imputation RMSE vs Downstream Accuracy\n({dataset_name})', fontsize=14)
+        plt.xlabel('Imputation RMSE (Lower is Better)', fontsize=12)
+        plt.ylabel('Model Accuracy (Higher is Better)', fontsize=12)
+        plt.grid(True, linestyle='--', alpha=0.5)
+        plt.tight_layout()
+
+        out_graph_path = os.path.join(script_dir, '..', 'results', f"{dataset_name.replace(' ','_')}_rmse_vs_accuracy.png")
+        plt.savefig(out_graph_path, dpi=300)
+        plt.close()
+
+        print(f"GRAPH SAVED: {out_graph_path}")
+
+        print("\n" + "="*50)
+        print("COMPLETE! Check ../results/ folder")
+        print("="*50)

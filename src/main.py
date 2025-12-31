@@ -4,9 +4,9 @@ import numpy as np
 import time
 import warnings
 
-warnings.filterwarnings("ignore", category=UserWarning, module="sklearn.model_selection") # Silencia avisos sobre classes com poucas amostras
+warnings.filterwarnings("ignore", category=UserWarning, module="sklearn.model_selection") # Silences warnings about classes with few samples
 # warnings.filterwarnings("ignore", category=UserWarning, module="sklearn.impute") to stop the conversion warnings from MICE if we want 
-warnings.filterwarnings("ignore", category=FutureWarning, module="sklearn.linear_model") # Silencia avisos futuros do sklearn neste caso do n_jobs = -1
+warnings.filterwarnings("ignore", category=FutureWarning, module="sklearn.linear_model") # Silences future warnings from sklearn in this case of n_jobs = -1
 
 # local imports 
 from imputation_techniques import impute_mean, impute_knn, impute_mice, impute_missForest, pool_mice_results
@@ -19,12 +19,12 @@ RAW_DIR = '../data/raw'
 PROCESSED_DIR = '../data/processed'
 RESULTS_DIR = '../results'
 
-# definição das iterações
-MC_TEST_ITER = 2   # do 20 Simulações de Teste 
-MC_REAL_ITER = 2   # do 20 Simulações Reais 
+# ddefine iterations and missing rate
+MC_TEST_ITER = 2   # do 20 test simulations
+MC_REAL_ITER = 2   # do 20 real simulations
 MISSING_RATE = 0.2
 
-# mapa de métodos
+# methods
 METHODS = {
     'Mean': lambda df: impute_mean(df),
     'KNN': lambda df: impute_knn(df, n_neighbors=5),
@@ -34,7 +34,7 @@ METHODS = {
 
 STOCHASTIC = ['MICE', 'MissForest']
 
-# FUNÇÃO DA BARRA DE PROGRESSO 
+# PROGRESS BAR FUNCTION 
 
 def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, length=40, fill='█'):
     """
@@ -52,14 +52,13 @@ def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, lengt
     filled_length = int(length * iteration // total)
     bar = fill * filled_length + '-' * (length - filled_length)
     
-    # \r volta ao inicio da linha, end='' evita nova linha
     print(f'\r{prefix} |{bar}| {percent}% {suffix}', end='', flush=True)
     
     if iteration == total: 
         print()
 
 def get_best_scatter_pair(df):
-    """Encontra par de colunas numéricas mais correlacionadas."""
+    """Finds the pair of most correlated numerical columns."""
     try:
         corr_matrix = df.select_dtypes(include=[np.number]).corr().abs()
         np.fill_diagonal(corr_matrix.values, 0)
@@ -101,7 +100,7 @@ def run_pipeline(file_path):
     df_raw.to_csv(prep_path, index=False)
     print(f"Preprocessed data saved to: {prep_path}")
 
-    # Detetar o Target
+    # Detect the Target
     target_col = None
     possible_targets = ['target', 'class', 'diagnosis', 'output', 'num']
     for c in df_raw.columns:
@@ -114,14 +113,14 @@ def run_pipeline(file_path):
     else:
         print("No target detected. Skipping accuracy analysis.")
 
-    # FASE 1: MONTE CARLO - TESTE
+    # PHASE 1: MONTE CARLO - TEST
 
     print(f"\n Entering Phase 1: Test Monte Carlo ({MC_TEST_ITER} runs)")
     test_results = []
     df_complete = df_raw.dropna()
     
     if len(df_complete) > 50:
-        # inicializa a barra vazia (0 of the total)
+        # initialize empty progress bar (0 of the total)
         print_progress_bar(0, MC_TEST_ITER, prefix='Progress:', suffix='Complete', length=40)
 
         for i in range(MC_TEST_ITER):
@@ -156,7 +155,7 @@ def run_pipeline(file_path):
                 except Exception as e:
                     pass
             
-            # fica mais ao menos como  Progress: |████------| 40.0% Iteration: X out of Y
+            # looks more or less like  Progress: |████------| 40.0% Iteration: X out of Y
             print_progress_bar(i + 1, MC_TEST_ITER, prefix='Testing:', suffix=f'Iteration: {i+1} out of {MC_TEST_ITER}', length=40)
             
     else:
@@ -175,13 +174,13 @@ def run_pipeline(file_path):
             'time': 'Time_mean'
         })
 
-    # FASE 2: MONTE CARLO - REAL
+    # PHASE 2: MONTE CARLO - REAL
 
     print(f"\n Entering Phase 2: Real Imputation ({MC_REAL_ITER} runs)")
     real_results = []
     final_dfs = {} 
     
-    # inicializa a barra da fase 2
+    # initialize progress bar for phase 2
     print_progress_bar(0, MC_REAL_ITER, prefix='Real Sim:', suffix='Complete', length=40)
 
     for i in range(MC_REAL_ITER):
@@ -217,17 +216,17 @@ def run_pipeline(file_path):
             except Exception as e:
                 pass
         
-        # atualiza a barra
+        # update the progress bar
         print_progress_bar(i + 1, MC_REAL_ITER, prefix='Real Sim:', suffix=f'Iter {i+1}/{MC_REAL_ITER}', length=40)
 
     df_real = pd.DataFrame(real_results)
     
-    # salvar os CSVs finais
+    # save the final CSVs
     for m, df in final_dfs.items():
         out_name = f"{dataset_name}_{m}.csv"
         df.to_csv(os.path.join(dataset_processed_dir, out_name), index=False)
 
-    # FASE 3: GRÁFICOS
+    # PHASE 3: VISUALIZATIONS
 
     print("\n Entering Phase 3: Generating Visualizations")
     
@@ -252,7 +251,7 @@ def run_pipeline(file_path):
         if col_x and col_y:
             viz.plot_scatter_comparison(df_raw, final_dfs, col_x, col_y)
             
-        # Encontrar a coluna numérica com mais valores em falta para o plot de distribuição
+        # Find the numerical column with the most missing values for the distribution plot
         cols_with_missing = df_loaded.select_dtypes(include=[np.number]).isna().sum()
         cols_with_missing = cols_with_missing[cols_with_missing > 0].sort_values(ascending=False)
         
