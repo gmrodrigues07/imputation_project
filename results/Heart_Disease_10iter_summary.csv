@@ -1,0 +1,45 @@
+Method,Classifier,Metric,Mean,Std
+KNN (k=10),LogisticRegression,accuracy,0.591,0.0
+KNN (k=10),LogisticRegression,f1,0.5574,0.0
+KNN (k=10),RandomForest,accuracy,0.5774,0.0
+KNN (k=10),RandomForest,f1,0.55,0.0
+KNN (k=10),XGBoost,accuracy,0.5516,0.0
+KNN (k=10),XGBoost,f1,0.5339,0.0
+KNN (k=5),LogisticRegression,accuracy,0.5856,0.0
+KNN (k=5),LogisticRegression,f1,0.5544,0.0
+KNN (k=5),RandomForest,accuracy,0.557,0.0
+KNN (k=5),RandomForest,f1,0.5276,0.0
+KNN (k=5),XGBoost,accuracy,0.5597,0.0
+KNN (k=5),XGBoost,f1,0.5376,0.0
+MICE,LogisticRegression,accuracy,0.5992,0.0
+MICE,LogisticRegression,f1,0.5678,0.0
+MICE,RandomForest,accuracy,0.5883,0.0
+MICE,RandomForest,f1,0.5617,0.0
+MICE,XGBoost,accuracy,0.5828,0.0
+MICE,XGBoost,f1,0.5706,0.0
+Mean,LogisticRegression,accuracy,0.5924,0.0
+Mean,LogisticRegression,f1,0.56,0.0
+Mean,RandomForest,accuracy,0.5788,0.0
+Mean,RandomForest,f1,0.5452,0.0
+Mean,XGBoost,accuracy,0.5448,0.0
+Mean,XGBoost,f1,0.5256,0.0
+Median,LogisticRegression,accuracy,0.5829,0.0
+Median,LogisticRegression,f1,0.5502,0.0
+Median,RandomForest,accuracy,0.5775,0.0
+Median,RandomForest,f1,0.5525,0.0
+Median,XGBoost,accuracy,0.5435,0.0
+Median,XGBoost,f1,0.5279,0.0
+MissForest,LogisticRegression,accuracy,0.6304,0.0
+MissForest,LogisticRegression,f1,0.608,0.0
+MissForest,RandomForest,accuracy,0.6671,0.0
+MissForest,RandomForest,f1,0.6465,0.0
+MissForest,XGBoost,accuracy,0.6604,0.0
+MissForest,XGBoost,f1,0.6494,0.0
+No Handling,LogisticRegression,accuracy,0.5857,0.0
+No Handling,LogisticRegression,f1,0.5512,0.0
+No Handling,RandomForest,accuracy,0.5381,0.0
+No Handling,RandomForest,f1,0.4843,0.0
+No Handling,XGBoost,accuracy,0.5101,0.0
+No Handling,XGBoost,f1,0.4899,0.0
+XGBoost Native,XGBoost,accuracy,0.5475,0.0
+XGBoost Native,XGBoost,f1,0.525,0.0

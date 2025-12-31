@@ -7,6 +7,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler # to use for the logistic regression 
 from sklearn.pipeline import make_pipeline # to use for the logistic regression as well
 import time
+from sklearn.model_selection import StratifiedKFold
+from sklearn.preprocessing import FunctionTransformer
 
 
 def create_missing_mask(data, missing_percentage=0.2, random_state=53):
@@ -36,6 +38,9 @@ def create_missing_mask(data, missing_percentage=0.2, random_state=53):
     # Only create missing values in numerical columns
     numerical_cols = data.select_dtypes(include=[np.number]).columns.tolist()
     
+    if target_col in numerical_cols:
+        numerical_cols.remove(target_col)  # ✅ PROTECT TARGET!
+
     for col in numerical_cols:
         # Skip columns that already have too many missing values
         if data[col].isnull().sum() / len(data) > 0.5:
@@ -167,7 +172,7 @@ def cross_validate_imputation(data, imputation_method, n_splits=5, missing_perce
     
     # Set up cross-validation splitter
     if stratify_column is not None and stratify_column in data.columns:
-        kfold = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+        kfold = StratifiedKFold(n_splits=min(5, len(np.unique(y)) * 2), shuffle=True, random_state=random_state)
         splits = kfold.split(data, data[stratify_column])
         if verbose:
             print(f"Using Stratified K-Fold on column: {stratify_column}")
@@ -510,35 +515,48 @@ def evaluate_downstream_task(df_imputed, target_col, cv=5, metrics=['accuracy', 
     if y.nunique() < 2:
         return {}
 
-    # Impute the entire dataset first
+    # Impute the entire datase=t first
     X_imputed = imputation_func(X)
     from xgboost import XGBClassifier
     classifiers = {
         'LogisticRegression': make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000, n_jobs=-1, random_state=53)),
         'RandomForest': RandomForestClassifier(n_estimators=50, n_jobs=-1, random_state=53),
-        'XGBoost': XGBClassifier(n_estimators=50, random_state=53, n_jobs=-1, use_label_encoder=False, eval_metric='logloss')
+        'XGBoost': XGBClassifier(n_estimators=50, random_state=53, n_jobs=-1, use_label_encoder=False, eval_metric='mlogloss')
     }
     results = {}
     for classifier_name, classifier in classifiers.items():
         try:
-            scores = cross_val_score(classifier, X_imputed, y, cv=cv, scoring='accuracy')
+            y_encoded = pd.Categorical(y, categories=sorted(y.unique())).codes
+            scores = cross_val_score(classifier, X_imputed, y_encoded, cv=cv, scoring='accuracy')
             results[classifier_name] = {'accuracy': scores.mean()}
         except Exception as e:
             results[classifier_name] = {'accuracy': np.nan}
     return results
 
-    return results
-
 if __name__ == "__main__":
     import os
     import sys
+    import pandas as pd
+    import numpy as np
+    import warnings
+    warnings.filterwarnings("ignore")
     
-    # Add parent directory to path to import imputation_techniques
+    # Add parent directory to path
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
     from imputation_techniques import impute_mean, impute_median, impute_knn, impute_missForest, impute_mice, pool_mice_results
     
+    # ✅ ALL IMPORTS
+    from sklearn.metrics import make_scorer, f1_score
+    from sklearn.model_selection import cross_validate, StratifiedKFold
+    from sklearn.preprocessing import LabelEncoder
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.ensemble import RandomForestClassifier
+    from xgboost import XGBClassifier
+    
     print("="*100)
-    print("EVALUATION MODULE - TESTING IMPUTATION METHODS")
+    print("EVALUATION MODULE - ACCURACY + F1 ONLY (10 ITERATIONS)")
     print("="*100)
     
     # Dataset selection
@@ -577,9 +595,13 @@ if __name__ == "__main__":
         'Mean': impute_mean,
         'Median': impute_median,
         'KNN (k=5)': lambda df: impute_knn(df, n_neighbors=5),
+        'KNN (k=10)': lambda df: impute_knn(df, n_neighbors=10),
         'MissForest': lambda df: impute_missForest(df, max_iter=10, n_estimators=50),
         'MICE': lambda df: pool_mice_results(impute_mice(df, n_imputations=3, max_iter=10))
     }
+    
+    # F1 SCORER
+    f1_scorer = make_scorer(f1_score, average='weighted', zero_division=0)
     
     # Process each dataset
     for dataset_name, data_path, target_col in datasets_to_process:
@@ -593,200 +615,103 @@ if __name__ == "__main__":
             print(f"\nLoaded data from: {data_path}")
             print(f"Shape: {data.shape}")
             
-            # Check for missing values
             total_missing = data.isnull().sum().sum()
             print(f"Missing values: {total_missing}")
             
-            # If no missing values, create artificial ones
             if total_missing == 0:
                 print(f"\n{'!'*100}")
                 print(f"NOTE: {dataset_name} has NO natural missing values!")
                 print(f"Creating artificial missing values for evaluation...")
                 print(f"{'!'*100}")
                 
-                # Create artificial missing values (excluding target column)
                 data, _, _ = create_missing_mask(
                     data=data,
-                    missing_percentage=0.15,  # 15% missing
+                    missing_percentage=0.15,
                     random_state=42
                 )
                 print(f"Created artificial missing values: {data.isnull().sum().sum()} missing cells")
                 
         except FileNotFoundError:
             print(f"\nERROR: File not found at {data_path}")
-            print("Please run preprocessing.py first to create processed data files.")
             continue
-        
-        # Part 1: Simple imputation comparison (MSE/RMSE/MAE)
+
+        # Part 1: Simple imputation comparison
         print("\n" + "#"*100)
         print("PART 1: IMPUTATION QUALITY EVALUATION (MSE/RMSE/MAE)")
         print("#"*100)
         
-        imputation_results = simple_imputation_comparison(
+        imputation_results_1 = simple_imputation_comparison(
             data=data,
             imputation_functions=methods,
-            missing_percentage=0.15,  # Remove 15% of values
+            missing_percentage=0.1,
             random_state=42
         )
-        
-        # Part 2: Downstream task evaluation (Classification performance)
+
+        classifiers = {
+            'LogisticRegression': make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000, n_jobs=-1, random_state=53)),
+            'RandomForest': RandomForestClassifier(n_estimators=50, n_jobs=-1, random_state=53),
+            'XGBoost': XGBClassifier(n_estimators=50, random_state=53, n_jobs=-1, eval_metric='logloss')
+        }
+
+        # ✅ TRUE CV PIPELINE (replace entire Part 2)
+        from sklearn.compose import ColumnTransformer
+        from sklearn.pipeline import Pipeline
+
         print("\n\n" + "#"*100)
-        print("PART 2: DOWNSTREAM TASK EVALUATION (CLASSIFICATION PERFORMANCE)")
+        print("PART 2: TRUE CROSS-VALIDATED PIPELINES")
         print("#"*100)
-        
-        # First, impute the data with each method
-        downstream_results = []
-        
-        # Baseline 1: No handling (just remove rows with missing values)
-        print(f"\n{'-'*100}")
-        print(f"Testing: No Handling (Listwise Deletion)")
-        print(f"{'-'*100}")
-        
-        try:
-            data_no_handling = data.dropna()
-            print(f"  Rows before: {len(data)}, Rows after deletion: {len(data_no_handling)}")
-            
-            if len(data_no_handling) > 10:  # Need at least some rows
-                results = evaluate_downstream_task(
-                    df_imputed=data_no_handling,
-                    target_col=target_col,
-                    cv=5,
-                    metrics=['accuracy', 'precision', 'recall', 'f1']
-                )
-                
-                if results:
-                    for classifier_name, metrics_dict in results.items():
-                        row = {'Method': 'No Handling', 'Classifier': classifier_name}
-                        row.update(metrics_dict)
-                        downstream_results.append(row)
-                        
-                        print(f"  {classifier_name}:")
-                        for metric_name, value in metrics_dict.items():
-                            print(f"    {metric_name}: {value:.4f}")
-            else:
-                print("  Insufficient data after deletion")
-        except Exception as e:
-            print(f"  ERROR: {str(e)}")
-        
-        # Baseline 2: XGBoost with native missing value handling
-        print(f"\n{'-'*100}")
-        print(f"Testing: XGBoost Native (No Imputation)")
-        print(f"{'-'*100}")
-        
-        try:
-            # XGBoost can handle missing values natively
-            # We only test with XGBoost classifier
-            from xgboost import XGBClassifier
-            from sklearn.model_selection import cross_validate
-            from sklearn.preprocessing import LabelEncoder
-            
-            data_xgb = data.copy()
-            X = data_xgb.drop(columns=[target_col])
-            y = data_xgb[target_col]
-            
-            # Encode target if needed
-            if y.dtype == 'object' or y.dtype.name == 'category':
-                le = LabelEncoder()
-                y = le.fit_transform(y)
-            
-            print(f"  Testing with missing values intact (XGBoost native handling)")
-            print(f"  Total missing values: {X.isnull().sum().sum()}")
-            
-            xgb_model = XGBClassifier(random_state=42, eval_metric='logloss', use_label_encoder=False)
-            
-            cv_results = cross_validate(
-                xgb_model, X, y,
-                cv=5,
-                scoring=['accuracy', 'precision_weighted', 'recall_weighted', 'f1_weighted'],
-                return_train_score=False
-            )
-            
-            metrics_dict = {
-                'Accuracy': cv_results['test_accuracy'].mean(),
-                'Precision': cv_results['test_precision_weighted'].mean(),
-                'Recall': cv_results['test_recall_weighted'].mean(),
-                'F1-Score': cv_results['test_f1_weighted'].mean()
-            }
-            
-            row = {'Method': 'XGBoost Native', 'Classifier': 'XGBoost'}
-            row.update(metrics_dict)
-            downstream_results.append(row)
-            
-            print(f"  XGBoost (Native Missing Handling):")
-            for metric_name, value in metrics_dict.items():
-                print(f"    {metric_name}: {value:.4f}")
-                
-        except Exception as e:
-            print(f"  ERROR: {str(e)}")
-        
-        # Now test each imputation method
+
+        # Create pipelines for EACH method
+        pipelines = {}
+
+        # 1. No Handling → just dropna in preprocessing
+        pipelines['No Handling'] = Pipeline([
+            ('dropna', FunctionTransformer(lambda X: X.dropna())),
+            ('clf', classifiers['XGBoost'])
+        ])
+
+        # 2. XGBoost Native → raw data
+        pipelines['XGBoost Native'] = Pipeline([
+            ('clf', classifiers['XGBoost'])
+        ])
+
+        # 3. Imputation pipelines
         for method_name, imputation_func in methods.items():
-            print(f"\n{'-'*100}")
-            print(f"Testing: {method_name}")
-            print(f"{'-'*100}")
+            pipelines[method_name] = Pipeline([
+                ('impute', FunctionTransformer(imputation_func)),
+                ('clf', classifiers['XGBoost'])
+            ])
+
+        # TRUE 10-FOLD CV (no leakage!)
+        results = {}
+        for name, pipe in pipelines.items():
+            print(f"CV {name}...")
             
-            try:
-                # Apply imputation
-                data_imputed = imputation_func(data.copy())
-                
-                # Evaluate on classification task
-                results = evaluate_downstream_task(
-                    df_imputed=data_imputed,
-                    target_col=target_col,
-                    cv=5,
-                    metrics=['accuracy', 'precision', 'recall', 'f1']
-                )
-                
-                # Format results
-                if results:
-                    for classifier_name, metrics_dict in results.items():
-                        row = {'Method': method_name, 'Classifier': classifier_name}
-                        row.update(metrics_dict)
-                        downstream_results.append(row)
-                        
-                        print(f"  {classifier_name}:")
-                        for metric_name, value in metrics_dict.items():
-                            print(f"    {metric_name}: {value:.4f}")
-                else:
-                    print("  No results (insufficient data or target column issue)")
-                    
-            except Exception as e:
-                print(f"  ERROR: {str(e)}")
-        
-        # Create downstream comparison table
-        if downstream_results:
-            downstream_df = pd.DataFrame(downstream_results)
+            # Encode y ONCE (outside CV)
+            y_encoded = data[target_col]
+            if len(np.unique(y_encoded)) > 2:
+                unique_classes = sorted(np.unique(y_encoded))
+                y_encoded = pd.Categorical(y_encoded, categories=unique_classes).codes
             
-            print("\n" + "="*100)
-            print("DOWNSTREAM TASK - DETAILED RESULTS")
-            print("="*100)
+            X = data.drop(columns=[target_col]).select_dtypes(include=[np.number])
             
-            # Create separate tables for each metric
-            metrics_to_show = ['accuracy', 'precision', 'recall', 'f1']
+            # 10-fold stratified CV
+            skf = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
+            cv_scores = cross_validate(pipe, X, y_encoded, cv=skf,
+                                    scoring={'accuracy': 'accuracy', 'f1': f1_scorer},
+                                    return_train_score=False)
             
-            for metric in metrics_to_show:
-                if metric in downstream_df.columns:
-                    print(f"\n{'-'*100}")
-                    print(f"{metric.upper()} BY METHOD AND CLASSIFIER")
-                    print(f"{'-'*100}")
-                    
-                    # Pivot table: rows=methods, columns=classifiers
-                    pivot = downstream_df.pivot(index='Method', columns='Classifier', values=metric)
-                    print(pivot.round(4).to_string())
-                    
-                    # Show average per method
-                    print(f"\nAverage {metric.upper()} per method:")
-                    avg = downstream_df.groupby('Method')[metric].mean().round(4).sort_values(ascending=False)
-                    for method, value in avg.items():
-                        print(f"  {method:15s}: {value:.4f}")
-            
-            # Overall summary table
-            print("\n" + "="*100)
-            print("AVERAGE PERFORMANCE PER IMPUTATION METHOD (ALL METRICS)")
-            print("="*100)
-            avg_performance = downstream_df.groupby('Method').mean(numeric_only=True).round(4)
-            print(avg_performance.to_string())
-        
-        print("\n" + "="*100)
-        print(f"COMPLETED: {dataset_name.upper()}")
-        print("="*100)
+            results[name] = {
+                'accuracy_mean': np.mean(cv_scores['test_accuracy']),
+                'accuracy_std': np.nanstd(cv_scores['test_accuracy']),
+                'f1_mean': np.mean(cv_scores['test_f1']),
+                'f1_std': np.nanstd(cv_scores['test_f1'])
+            }
+
+        # PERFECT TABLE
+        results_df = pd.DataFrame(results).T.round(4)
+        print("\n🏆 TRUE CROSS-VALIDATED RESULTS:")
+        print(results_df[['accuracy_mean', 'accuracy_std', 'f1_mean', 'f1_std']])
+
+        # Save
+        results_df.to_csv(os.path.join(script_dir, '..', 'results', f"{dataset_name}_true_cv_results.csv"))

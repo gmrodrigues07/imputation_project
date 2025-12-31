@@ -1,0 +1,441 @@
+iteration,Method,Classifier,Metric,Mean
+0,No Handling,LogisticRegression,accuracy,0.5857254901960784
+0,No Handling,LogisticRegression,f1,0.5512497466165023
+0,No Handling,RandomForest,accuracy,0.5381176470588236
+0,No Handling,RandomForest,f1,0.4842970721158995
+0,No Handling,XGBoost,accuracy,0.5101176470588236
+0,No Handling,XGBoost,f1,0.4898891741079422
+0,XGBoost Native,XGBoost,accuracy,0.5475363118220261
+0,XGBoost Native,XGBoost,f1,0.5249999929200033
+0,Mean,LogisticRegression,accuracy,0.5923974995403567
+0,Mean,LogisticRegression,f1,0.5599847015502581
+0,Mean,RandomForest,accuracy,0.5787920573634859
+0,Mean,RandomForest,f1,0.5452171344804874
+0,Mean,XGBoost,accuracy,0.5448060305203162
+0,Mean,XGBoost,f1,0.5255572201052653
+0,Median,LogisticRegression,accuracy,0.5828828828828828
+0,Median,LogisticRegression,f1,0.5501912979039657
+0,Median,RandomForest,accuracy,0.577523441809156
+0,Median,RandomForest,f1,0.5525267490556132
+0,Median,XGBoost,accuracy,0.5434638720353007
+0,Median,XGBoost,f1,0.5278565788741306
+0,KNN (k=5),LogisticRegression,accuracy,0.585603971318257
+0,KNN (k=5),LogisticRegression,f1,0.5543937249560231
+0,KNN (k=5),RandomForest,accuracy,0.5570325427468285
+0,KNN (k=5),RandomForest,f1,0.527567600961506
+0,KNN (k=5),XGBoost,accuracy,0.5596800882515168
+0,KNN (k=5),XGBoost,f1,0.5376376825475266
+0,KNN (k=10),LogisticRegression,accuracy,0.5910369553226695
+0,KNN (k=10),LogisticRegression,f1,0.5573951712063532
+0,KNN (k=10),RandomForest,accuracy,0.577422320279463
+0,KNN (k=10),RandomForest,f1,0.5500446730652438
+0,KNN (k=10),XGBoost,accuracy,0.5516271373414231
+0,KNN (k=10),XGBoost,f1,0.5338960690989305
+0,MissForest,LogisticRegression,accuracy,0.6303916161059019
+0,MissForest,LogisticRegression,f1,0.6080075924674707
+0,MissForest,RandomForest,accuracy,0.6671355028497885
+0,MissForest,RandomForest,f1,0.6465236836549534
+0,MissForest,XGBoost,accuracy,0.6603695532266961
+0,MissForest,XGBoost,f1,0.649371781028395
+0,MICE,LogisticRegression,accuracy,0.5991910277624564
+0,MICE,LogisticRegression,f1,0.5678428178397383
+0,MICE,RandomForest,accuracy,0.5882699025556168
+0,MICE,RandomForest,f1,0.5617305833484694
+0,MICE,XGBoost,accuracy,0.58284611141754
+0,MICE,XGBoost,f1,0.5705756276490481
+1,No Handling,LogisticRegression,accuracy,0.5857254901960784
+1,No Handling,LogisticRegression,f1,0.5512497466165023
+1,No Handling,RandomForest,accuracy,0.5381176470588236
+1,No Handling,RandomForest,f1,0.4842970721158995
+1,No Handling,XGBoost,accuracy,0.5101176470588236
+1,No Handling,XGBoost,f1,0.4898891741079422
+1,XGBoost Native,XGBoost,accuracy,0.5475363118220261
+1,XGBoost Native,XGBoost,f1,0.5249999929200033
+1,Mean,LogisticRegression,accuracy,0.5923974995403567
+1,Mean,LogisticRegression,f1,0.5599847015502581
+1,Mean,RandomForest,accuracy,0.5787920573634859
+1,Mean,RandomForest,f1,0.5452171344804874
+1,Mean,XGBoost,accuracy,0.5448060305203162
+1,Mean,XGBoost,f1,0.5255572201052653
+1,Median,LogisticRegression,accuracy,0.5828828828828828
+1,Median,LogisticRegression,f1,0.5501912979039657
+1,Median,RandomForest,accuracy,0.577523441809156
+1,Median,RandomForest,f1,0.5525267490556132
+1,Median,XGBoost,accuracy,0.5434638720353007
+1,Median,XGBoost,f1,0.5278565788741306
+1,KNN (k=5),LogisticRegression,accuracy,0.585603971318257
+1,KNN (k=5),LogisticRegression,f1,0.5543937249560231
+1,KNN (k=5),RandomForest,accuracy,0.5570325427468285
+1,KNN (k=5),RandomForest,f1,0.527567600961506
+1,KNN (k=5),XGBoost,accuracy,0.5596800882515168
+1,KNN (k=5),XGBoost,f1,0.5376376825475266
+1,KNN (k=10),LogisticRegression,accuracy,0.5910369553226695
+1,KNN (k=10),LogisticRegression,f1,0.5573951712063532
+1,KNN (k=10),RandomForest,accuracy,0.577422320279463
+1,KNN (k=10),RandomForest,f1,0.5500446730652438
+1,KNN (k=10),XGBoost,accuracy,0.5516271373414231
+1,KNN (k=10),XGBoost,f1,0.5338960690989305
+1,MissForest,LogisticRegression,accuracy,0.6303916161059019
+1,MissForest,LogisticRegression,f1,0.6080075924674707
+1,MissForest,RandomForest,accuracy,0.6671355028497885
+1,MissForest,RandomForest,f1,0.6465236836549534
+1,MissForest,XGBoost,accuracy,0.6603695532266961
+1,MissForest,XGBoost,f1,0.649371781028395
+1,MICE,LogisticRegression,accuracy,0.5991910277624564
+1,MICE,LogisticRegression,f1,0.5678428178397383
+1,MICE,RandomForest,accuracy,0.5882699025556168
+1,MICE,RandomForest,f1,0.5617305833484694
+1,MICE,XGBoost,accuracy,0.58284611141754
+1,MICE,XGBoost,f1,0.5705756276490481
+2,No Handling,LogisticRegression,accuracy,0.5857254901960784
+2,No Handling,LogisticRegression,f1,0.5512497466165023
+2,No Handling,RandomForest,accuracy,0.5381176470588236
+2,No Handling,RandomForest,f1,0.4842970721158995
+2,No Handling,XGBoost,accuracy,0.5101176470588236
+2,No Handling,XGBoost,f1,0.4898891741079422
+2,XGBoost Native,XGBoost,accuracy,0.5475363118220261
+2,XGBoost Native,XGBoost,f1,0.5249999929200033
+2,Mean,LogisticRegression,accuracy,0.5923974995403567
+2,Mean,LogisticRegression,f1,0.5599847015502581
+2,Mean,RandomForest,accuracy,0.5787920573634859
+2,Mean,RandomForest,f1,0.5452171344804874
+2,Mean,XGBoost,accuracy,0.5448060305203162
+2,Mean,XGBoost,f1,0.5255572201052653
+2,Median,LogisticRegression,accuracy,0.5828828828828828
+2,Median,LogisticRegression,f1,0.5501912979039657
+2,Median,RandomForest,accuracy,0.577523441809156
+2,Median,RandomForest,f1,0.5525267490556132
+2,Median,XGBoost,accuracy,0.5434638720353007
+2,Median,XGBoost,f1,0.5278565788741306
+2,KNN (k=5),LogisticRegression,accuracy,0.585603971318257
+2,KNN (k=5),LogisticRegression,f1,0.5543937249560231
+2,KNN (k=5),RandomForest,accuracy,0.5570325427468285
+2,KNN (k=5),RandomForest,f1,0.527567600961506
+2,KNN (k=5),XGBoost,accuracy,0.5596800882515168
+2,KNN (k=5),XGBoost,f1,0.5376376825475266
+2,KNN (k=10),LogisticRegression,accuracy,0.5910369553226695
+2,KNN (k=10),LogisticRegression,f1,0.5573951712063532
+2,KNN (k=10),RandomForest,accuracy,0.577422320279463
+2,KNN (k=10),RandomForest,f1,0.5500446730652438
+2,KNN (k=10),XGBoost,accuracy,0.5516271373414231
+2,KNN (k=10),XGBoost,f1,0.5338960690989305
+2,MissForest,LogisticRegression,accuracy,0.6303916161059019
+2,MissForest,LogisticRegression,f1,0.6080075924674707
+2,MissForest,RandomForest,accuracy,0.6671355028497885
+2,MissForest,RandomForest,f1,0.6465236836549534
+2,MissForest,XGBoost,accuracy,0.6603695532266961
+2,MissForest,XGBoost,f1,0.649371781028395
+2,MICE,LogisticRegression,accuracy,0.5991910277624564
+2,MICE,LogisticRegression,f1,0.5678428178397383
+2,MICE,RandomForest,accuracy,0.5882699025556168
+2,MICE,RandomForest,f1,0.5617305833484694
+2,MICE,XGBoost,accuracy,0.58284611141754
+2,MICE,XGBoost,f1,0.5705756276490481
+3,No Handling,LogisticRegression,accuracy,0.5857254901960784
+3,No Handling,LogisticRegression,f1,0.5512497466165023
+3,No Handling,RandomForest,accuracy,0.5381176470588236
+3,No Handling,RandomForest,f1,0.4842970721158995
+3,No Handling,XGBoost,accuracy,0.5101176470588236
+3,No Handling,XGBoost,f1,0.4898891741079422
+3,XGBoost Native,XGBoost,accuracy,0.5475363118220261
+3,XGBoost Native,XGBoost,f1,0.5249999929200033
+3,Mean,LogisticRegression,accuracy,0.5923974995403567
+3,Mean,LogisticRegression,f1,0.5599847015502581
+3,Mean,RandomForest,accuracy,0.5787920573634859
+3,Mean,RandomForest,f1,0.5452171344804874
+3,Mean,XGBoost,accuracy,0.5448060305203162
+3,Mean,XGBoost,f1,0.5255572201052653
+3,Median,LogisticRegression,accuracy,0.5828828828828828
+3,Median,LogisticRegression,f1,0.5501912979039657
+3,Median,RandomForest,accuracy,0.577523441809156
+3,Median,RandomForest,f1,0.5525267490556132
+3,Median,XGBoost,accuracy,0.5434638720353007
+3,Median,XGBoost,f1,0.5278565788741306
+3,KNN (k=5),LogisticRegression,accuracy,0.585603971318257
+3,KNN (k=5),LogisticRegression,f1,0.5543937249560231
+3,KNN (k=5),RandomForest,accuracy,0.5570325427468285
+3,KNN (k=5),RandomForest,f1,0.527567600961506
+3,KNN (k=5),XGBoost,accuracy,0.5596800882515168
+3,KNN (k=5),XGBoost,f1,0.5376376825475266
+3,KNN (k=10),LogisticRegression,accuracy,0.5910369553226695
+3,KNN (k=10),LogisticRegression,f1,0.5573951712063532
+3,KNN (k=10),RandomForest,accuracy,0.577422320279463
+3,KNN (k=10),RandomForest,f1,0.5500446730652438
+3,KNN (k=10),XGBoost,accuracy,0.5516271373414231
+3,KNN (k=10),XGBoost,f1,0.5338960690989305
+3,MissForest,LogisticRegression,accuracy,0.6303916161059019
+3,MissForest,LogisticRegression,f1,0.6080075924674707
+3,MissForest,RandomForest,accuracy,0.6671355028497885
+3,MissForest,RandomForest,f1,0.6465236836549534
+3,MissForest,XGBoost,accuracy,0.6603695532266961
+3,MissForest,XGBoost,f1,0.649371781028395
+3,MICE,LogisticRegression,accuracy,0.5991910277624564
+3,MICE,LogisticRegression,f1,0.5678428178397383
+3,MICE,RandomForest,accuracy,0.5882699025556168
+3,MICE,RandomForest,f1,0.5617305833484694
+3,MICE,XGBoost,accuracy,0.58284611141754
+3,MICE,XGBoost,f1,0.5705756276490481
+4,No Handling,LogisticRegression,accuracy,0.5857254901960784
+4,No Handling,LogisticRegression,f1,0.5512497466165023
+4,No Handling,RandomForest,accuracy,0.5381176470588236
+4,No Handling,RandomForest,f1,0.4842970721158995
+4,No Handling,XGBoost,accuracy,0.5101176470588236
+4,No Handling,XGBoost,f1,0.4898891741079422
+4,XGBoost Native,XGBoost,accuracy,0.5475363118220261
+4,XGBoost Native,XGBoost,f1,0.5249999929200033
+4,Mean,LogisticRegression,accuracy,0.5923974995403567
+4,Mean,LogisticRegression,f1,0.5599847015502581
+4,Mean,RandomForest,accuracy,0.5787920573634859
+4,Mean,RandomForest,f1,0.5452171344804874
+4,Mean,XGBoost,accuracy,0.5448060305203162
+4,Mean,XGBoost,f1,0.5255572201052653
+4,Median,LogisticRegression,accuracy,0.5828828828828828
+4,Median,LogisticRegression,f1,0.5501912979039657
+4,Median,RandomForest,accuracy,0.577523441809156
+4,Median,RandomForest,f1,0.5525267490556132
+4,Median,XGBoost,accuracy,0.5434638720353007
+4,Median,XGBoost,f1,0.5278565788741306
+4,KNN (k=5),LogisticRegression,accuracy,0.585603971318257
+4,KNN (k=5),LogisticRegression,f1,0.5543937249560231
+4,KNN (k=5),RandomForest,accuracy,0.5570325427468285
+4,KNN (k=5),RandomForest,f1,0.527567600961506
+4,KNN (k=5),XGBoost,accuracy,0.5596800882515168
+4,KNN (k=5),XGBoost,f1,0.5376376825475266
+4,KNN (k=10),LogisticRegression,accuracy,0.5910369553226695
+4,KNN (k=10),LogisticRegression,f1,0.5573951712063532
+4,KNN (k=10),RandomForest,accuracy,0.577422320279463
+4,KNN (k=10),RandomForest,f1,0.5500446730652438
+4,KNN (k=10),XGBoost,accuracy,0.5516271373414231
+4,KNN (k=10),XGBoost,f1,0.5338960690989305
+4,MissForest,LogisticRegression,accuracy,0.6303916161059019
+4,MissForest,LogisticRegression,f1,0.6080075924674707
+4,MissForest,RandomForest,accuracy,0.6671355028497885
+4,MissForest,RandomForest,f1,0.6465236836549534
+4,MissForest,XGBoost,accuracy,0.6603695532266961
+4,MissForest,XGBoost,f1,0.649371781028395
+4,MICE,LogisticRegression,accuracy,0.5991910277624564
+4,MICE,LogisticRegression,f1,0.5678428178397383
+4,MICE,RandomForest,accuracy,0.5882699025556168
+4,MICE,RandomForest,f1,0.5617305833484694
+4,MICE,XGBoost,accuracy,0.58284611141754
+4,MICE,XGBoost,f1,0.5705756276490481
+5,No Handling,LogisticRegression,accuracy,0.5857254901960784
+5,No Handling,LogisticRegression,f1,0.5512497466165023
+5,No Handling,RandomForest,accuracy,0.5381176470588236
+5,No Handling,RandomForest,f1,0.4842970721158995
+5,No Handling,XGBoost,accuracy,0.5101176470588236
+5,No Handling,XGBoost,f1,0.4898891741079422
+5,XGBoost Native,XGBoost,accuracy,0.5475363118220261
+5,XGBoost Native,XGBoost,f1,0.5249999929200033
+5,Mean,LogisticRegression,accuracy,0.5923974995403567
+5,Mean,LogisticRegression,f1,0.5599847015502581
+5,Mean,RandomForest,accuracy,0.5787920573634859
+5,Mean,RandomForest,f1,0.5452171344804874
+5,Mean,XGBoost,accuracy,0.5448060305203162
+5,Mean,XGBoost,f1,0.5255572201052653
+5,Median,LogisticRegression,accuracy,0.5828828828828828
+5,Median,LogisticRegression,f1,0.5501912979039657
+5,Median,RandomForest,accuracy,0.577523441809156
+5,Median,RandomForest,f1,0.5525267490556132
+5,Median,XGBoost,accuracy,0.5434638720353007
+5,Median,XGBoost,f1,0.5278565788741306
+5,KNN (k=5),LogisticRegression,accuracy,0.585603971318257
+5,KNN (k=5),LogisticRegression,f1,0.5543937249560231
+5,KNN (k=5),RandomForest,accuracy,0.5570325427468285
+5,KNN (k=5),RandomForest,f1,0.527567600961506
+5,KNN (k=5),XGBoost,accuracy,0.5596800882515168
+5,KNN (k=5),XGBoost,f1,0.5376376825475266
+5,KNN (k=10),LogisticRegression,accuracy,0.5910369553226695
+5,KNN (k=10),LogisticRegression,f1,0.5573951712063532
+5,KNN (k=10),RandomForest,accuracy,0.577422320279463
+5,KNN (k=10),RandomForest,f1,0.5500446730652438
+5,KNN (k=10),XGBoost,accuracy,0.5516271373414231
+5,KNN (k=10),XGBoost,f1,0.5338960690989305
+5,MissForest,LogisticRegression,accuracy,0.6303916161059019
+5,MissForest,LogisticRegression,f1,0.6080075924674707
+5,MissForest,RandomForest,accuracy,0.6671355028497885
+5,MissForest,RandomForest,f1,0.6465236836549534
+5,MissForest,XGBoost,accuracy,0.6603695532266961
+5,MissForest,XGBoost,f1,0.649371781028395
+5,MICE,LogisticRegression,accuracy,0.5991910277624564
+5,MICE,LogisticRegression,f1,0.5678428178397383
+5,MICE,RandomForest,accuracy,0.5882699025556168
+5,MICE,RandomForest,f1,0.5617305833484694
+5,MICE,XGBoost,accuracy,0.58284611141754
+5,MICE,XGBoost,f1,0.5705756276490481
+6,No Handling,LogisticRegression,accuracy,0.5857254901960784
+6,No Handling,LogisticRegression,f1,0.5512497466165023
+6,No Handling,RandomForest,accuracy,0.5381176470588236
+6,No Handling,RandomForest,f1,0.4842970721158995
+6,No Handling,XGBoost,accuracy,0.5101176470588236
+6,No Handling,XGBoost,f1,0.4898891741079422
+6,XGBoost Native,XGBoost,accuracy,0.5475363118220261
+6,XGBoost Native,XGBoost,f1,0.5249999929200033
+6,Mean,LogisticRegression,accuracy,0.5923974995403567
+6,Mean,LogisticRegression,f1,0.5599847015502581
+6,Mean,RandomForest,accuracy,0.5787920573634859
+6,Mean,RandomForest,f1,0.5452171344804874
+6,Mean,XGBoost,accuracy,0.5448060305203162
+6,Mean,XGBoost,f1,0.5255572201052653
+6,Median,LogisticRegression,accuracy,0.5828828828828828
+6,Median,LogisticRegression,f1,0.5501912979039657
+6,Median,RandomForest,accuracy,0.577523441809156
+6,Median,RandomForest,f1,0.5525267490556132
+6,Median,XGBoost,accuracy,0.5434638720353007
+6,Median,XGBoost,f1,0.5278565788741306
+6,KNN (k=5),LogisticRegression,accuracy,0.585603971318257
+6,KNN (k=5),LogisticRegression,f1,0.5543937249560231
+6,KNN (k=5),RandomForest,accuracy,0.5570325427468285
+6,KNN (k=5),RandomForest,f1,0.527567600961506
+6,KNN (k=5),XGBoost,accuracy,0.5596800882515168
+6,KNN (k=5),XGBoost,f1,0.5376376825475266
+6,KNN (k=10),LogisticRegression,accuracy,0.5910369553226695
+6,KNN (k=10),LogisticRegression,f1,0.5573951712063532
+6,KNN (k=10),RandomForest,accuracy,0.577422320279463
+6,KNN (k=10),RandomForest,f1,0.5500446730652438
+6,KNN (k=10),XGBoost,accuracy,0.5516271373414231
+6,KNN (k=10),XGBoost,f1,0.5338960690989305
+6,MissForest,LogisticRegression,accuracy,0.6303916161059019
+6,MissForest,LogisticRegression,f1,0.6080075924674707
+6,MissForest,RandomForest,accuracy,0.6671355028497885
+6,MissForest,RandomForest,f1,0.6465236836549534
+6,MissForest,XGBoost,accuracy,0.6603695532266961
+6,MissForest,XGBoost,f1,0.649371781028395
+6,MICE,LogisticRegression,accuracy,0.5991910277624564
+6,MICE,LogisticRegression,f1,0.5678428178397383
+6,MICE,RandomForest,accuracy,0.5882699025556168
+6,MICE,RandomForest,f1,0.5617305833484694
+6,MICE,XGBoost,accuracy,0.58284611141754
+6,MICE,XGBoost,f1,0.5705756276490481
+7,No Handling,LogisticRegression,accuracy,0.5857254901960784
+7,No Handling,LogisticRegression,f1,0.5512497466165023
+7,No Handling,RandomForest,accuracy,0.5381176470588236
+7,No Handling,RandomForest,f1,0.4842970721158995
+7,No Handling,XGBoost,accuracy,0.5101176470588236
+7,No Handling,XGBoost,f1,0.4898891741079422
+7,XGBoost Native,XGBoost,accuracy,0.5475363118220261
+7,XGBoost Native,XGBoost,f1,0.5249999929200033
+7,Mean,LogisticRegression,accuracy,0.5923974995403567
+7,Mean,LogisticRegression,f1,0.5599847015502581
+7,Mean,RandomForest,accuracy,0.5787920573634859
+7,Mean,RandomForest,f1,0.5452171344804874
+7,Mean,XGBoost,accuracy,0.5448060305203162
+7,Mean,XGBoost,f1,0.5255572201052653
+7,Median,LogisticRegression,accuracy,0.5828828828828828
+7,Median,LogisticRegression,f1,0.5501912979039657
+7,Median,RandomForest,accuracy,0.577523441809156
+7,Median,RandomForest,f1,0.5525267490556132
+7,Median,XGBoost,accuracy,0.5434638720353007
+7,Median,XGBoost,f1,0.5278565788741306
+7,KNN (k=5),LogisticRegression,accuracy,0.585603971318257
+7,KNN (k=5),LogisticRegression,f1,0.5543937249560231
+7,KNN (k=5),RandomForest,accuracy,0.5570325427468285
+7,KNN (k=5),RandomForest,f1,0.527567600961506
+7,KNN (k=5),XGBoost,accuracy,0.5596800882515168
+7,KNN (k=5),XGBoost,f1,0.5376376825475266
+7,KNN (k=10),LogisticRegression,accuracy,0.5910369553226695
+7,KNN (k=10),LogisticRegression,f1,0.5573951712063532
+7,KNN (k=10),RandomForest,accuracy,0.577422320279463
+7,KNN (k=10),RandomForest,f1,0.5500446730652438
+7,KNN (k=10),XGBoost,accuracy,0.5516271373414231
+7,KNN (k=10),XGBoost,f1,0.5338960690989305
+7,MissForest,LogisticRegression,accuracy,0.6303916161059019
+7,MissForest,LogisticRegression,f1,0.6080075924674707
+7,MissForest,RandomForest,accuracy,0.6671355028497885
+7,MissForest,RandomForest,f1,0.6465236836549534
+7,MissForest,XGBoost,accuracy,0.6603695532266961
+7,MissForest,XGBoost,f1,0.649371781028395
+7,MICE,LogisticRegression,accuracy,0.5991910277624564
+7,MICE,LogisticRegression,f1,0.5678428178397383
+7,MICE,RandomForest,accuracy,0.5882699025556168
+7,MICE,RandomForest,f1,0.5617305833484694
+7,MICE,XGBoost,accuracy,0.58284611141754
+7,MICE,XGBoost,f1,0.5705756276490481
+8,No Handling,LogisticRegression,accuracy,0.5857254901960784
+8,No Handling,LogisticRegression,f1,0.5512497466165023
+8,No Handling,RandomForest,accuracy,0.5381176470588236
+8,No Handling,RandomForest,f1,0.4842970721158995
+8,No Handling,XGBoost,accuracy,0.5101176470588236
+8,No Handling,XGBoost,f1,0.4898891741079422
+8,XGBoost Native,XGBoost,accuracy,0.5475363118220261
+8,XGBoost Native,XGBoost,f1,0.5249999929200033
+8,Mean,LogisticRegression,accuracy,0.5923974995403567
+8,Mean,LogisticRegression,f1,0.5599847015502581
+8,Mean,RandomForest,accuracy,0.5787920573634859
+8,Mean,RandomForest,f1,0.5452171344804874
+8,Mean,XGBoost,accuracy,0.5448060305203162
+8,Mean,XGBoost,f1,0.5255572201052653
+8,Median,LogisticRegression,accuracy,0.5828828828828828
+8,Median,LogisticRegression,f1,0.5501912979039657
+8,Median,RandomForest,accuracy,0.577523441809156
+8,Median,RandomForest,f1,0.5525267490556132
+8,Median,XGBoost,accuracy,0.5434638720353007
+8,Median,XGBoost,f1,0.5278565788741306
+8,KNN (k=5),LogisticRegression,accuracy,0.585603971318257
+8,KNN (k=5),LogisticRegression,f1,0.5543937249560231
+8,KNN (k=5),RandomForest,accuracy,0.5570325427468285
+8,KNN (k=5),RandomForest,f1,0.527567600961506
+8,KNN (k=5),XGBoost,accuracy,0.5596800882515168
+8,KNN (k=5),XGBoost,f1,0.5376376825475266
+8,KNN (k=10),LogisticRegression,accuracy,0.5910369553226695
+8,KNN (k=10),LogisticRegression,f1,0.5573951712063532
+8,KNN (k=10),RandomForest,accuracy,0.577422320279463
+8,KNN (k=10),RandomForest,f1,0.5500446730652438
+8,KNN (k=10),XGBoost,accuracy,0.5516271373414231
+8,KNN (k=10),XGBoost,f1,0.5338960690989305
+8,MissForest,LogisticRegression,accuracy,0.6303916161059019
+8,MissForest,LogisticRegression,f1,0.6080075924674707
+8,MissForest,RandomForest,accuracy,0.6671355028497885
+8,MissForest,RandomForest,f1,0.6465236836549534
+8,MissForest,XGBoost,accuracy,0.6603695532266961
+8,MissForest,XGBoost,f1,0.649371781028395
+8,MICE,LogisticRegression,accuracy,0.5991910277624564
+8,MICE,LogisticRegression,f1,0.5678428178397383
+8,MICE,RandomForest,accuracy,0.5882699025556168
+8,MICE,RandomForest,f1,0.5617305833484694
+8,MICE,XGBoost,accuracy,0.58284611141754
+8,MICE,XGBoost,f1,0.5705756276490481
+9,No Handling,LogisticRegression,accuracy,0.5857254901960784
+9,No Handling,LogisticRegression,f1,0.5512497466165023
+9,No Handling,RandomForest,accuracy,0.5381176470588236
+9,No Handling,RandomForest,f1,0.4842970721158995
+9,No Handling,XGBoost,accuracy,0.5101176470588236
+9,No Handling,XGBoost,f1,0.4898891741079422
+9,XGBoost Native,XGBoost,accuracy,0.5475363118220261
+9,XGBoost Native,XGBoost,f1,0.5249999929200033
+9,Mean,LogisticRegression,accuracy,0.5923974995403567
+9,Mean,LogisticRegression,f1,0.5599847015502581
+9,Mean,RandomForest,accuracy,0.5787920573634859
+9,Mean,RandomForest,f1,0.5452171344804874
+9,Mean,XGBoost,accuracy,0.5448060305203162
+9,Mean,XGBoost,f1,0.5255572201052653
+9,Median,LogisticRegression,accuracy,0.5828828828828828
+9,Median,LogisticRegression,f1,0.5501912979039657
+9,Median,RandomForest,accuracy,0.577523441809156
+9,Median,RandomForest,f1,0.5525267490556132
+9,Median,XGBoost,accuracy,0.5434638720353007
+9,Median,XGBoost,f1,0.5278565788741306
+9,KNN (k=5),LogisticRegression,accuracy,0.585603971318257
+9,KNN (k=5),LogisticRegression,f1,0.5543937249560231
+9,KNN (k=5),RandomForest,accuracy,0.5570325427468285
+9,KNN (k=5),RandomForest,f1,0.527567600961506
+9,KNN (k=5),XGBoost,accuracy,0.5596800882515168
+9,KNN (k=5),XGBoost,f1,0.5376376825475266
+9,KNN (k=10),LogisticRegression,accuracy,0.5910369553226695
+9,KNN (k=10),LogisticRegression,f1,0.5573951712063532
+9,KNN (k=10),RandomForest,accuracy,0.577422320279463
+9,KNN (k=10),RandomForest,f1,0.5500446730652438
+9,KNN (k=10),XGBoost,accuracy,0.5516271373414231
+9,KNN (k=10),XGBoost,f1,0.5338960690989305
+9,MissForest,LogisticRegression,accuracy,0.6303916161059019
+9,MissForest,LogisticRegression,f1,0.6080075924674707
+9,MissForest,RandomForest,accuracy,0.6671355028497885
+9,MissForest,RandomForest,f1,0.6465236836549534
+9,MissForest,XGBoost,accuracy,0.6603695532266961
+9,MissForest,XGBoost,f1,0.649371781028395
+9,MICE,LogisticRegression,accuracy,0.5991910277624564
+9,MICE,LogisticRegression,f1,0.5678428178397383
+9,MICE,RandomForest,accuracy,0.5882699025556168
+9,MICE,RandomForest,f1,0.5617305833484694
+9,MICE,XGBoost,accuracy,0.58284611141754
+9,MICE,XGBoost,f1,0.5705756276490481
