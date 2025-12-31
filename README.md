@@ -5,13 +5,13 @@ It is Possible to run main.py and evaluation.py. The main has a pipeline includi
 
 **Authors:**
 
-*Lucas Aparicio (up202206594)
+Lucas Aparicio (up202206594)
 
-*Guilherme Rodrigues (up202208878)
+Guilherme Rodrigues (up202208878)
 
-*Rúben Oliveira (up202205106)
+Rúben Oliveira (up202205106)
 
-**Inatallation:**
+**Installation:**
 
 To run this code, you need Python installed along with the following libraries that you can install them using pip.
 
