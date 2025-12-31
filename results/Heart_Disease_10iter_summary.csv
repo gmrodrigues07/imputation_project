@@ -11,12 +11,12 @@ KNN (k=5),RandomForest,accuracy,0.557,0.0
 KNN (k=5),RandomForest,f1,0.5276,0.0
 KNN (k=5),XGBoost,accuracy,0.5597,0.0
 KNN (k=5),XGBoost,f1,0.5376,0.0
-MICE,LogisticRegression,accuracy,0.5992,0.0
-MICE,LogisticRegression,f1,0.5678,0.0
-MICE,RandomForest,accuracy,0.5883,0.0
-MICE,RandomForest,f1,0.5617,0.0
-MICE,XGBoost,accuracy,0.5828,0.0
-MICE,XGBoost,f1,0.5706,0.0
+MICE,LogisticRegression,accuracy,0.629,0.0
+MICE,LogisticRegression,f1,0.6027,0.0
+MICE,RandomForest,accuracy,0.6522,0.0
+MICE,RandomForest,f1,0.627,0.0
+MICE,XGBoost,accuracy,0.6658,0.0
+MICE,XGBoost,f1,0.6548,0.0
 Mean,LogisticRegression,accuracy,0.5924,0.0
 Mean,LogisticRegression,f1,0.56,0.0
 Mean,RandomForest,accuracy,0.5788,0.0

@@ -37,12 +37,12 @@ iteration,Method,Classifier,Metric,Mean
 0,MissForest,RandomForest,f1,0.6465236836549534
 0,MissForest,XGBoost,accuracy,0.6603695532266961
 0,MissForest,XGBoost,f1,0.649371781028395
-0,MICE,LogisticRegression,accuracy,0.5991910277624564
-0,MICE,LogisticRegression,f1,0.5678428178397383
-0,MICE,RandomForest,accuracy,0.5882699025556168
-0,MICE,RandomForest,f1,0.5617305833484694
-0,MICE,XGBoost,accuracy,0.58284611141754
-0,MICE,XGBoost,f1,0.5705756276490481
+0,MICE,LogisticRegression,accuracy,0.6290310718882146
+0,MICE,LogisticRegression,f1,0.6027323986428381
+0,MICE,RandomForest,accuracy,0.6522062879205737
+0,MICE,RandomForest,f1,0.6269744738012067
+0,MICE,XGBoost,accuracy,0.6657749586321015
+0,MICE,XGBoost,f1,0.6547726442468123
 1,No Handling,LogisticRegression,accuracy,0.5857254901960784
 1,No Handling,LogisticRegression,f1,0.5512497466165023
 1,No Handling,RandomForest,accuracy,0.5381176470588236
@@ -81,12 +81,12 @@ iteration,Method,Classifier,Metric,Mean
 1,MissForest,RandomForest,f1,0.6465236836549534
 1,MissForest,XGBoost,accuracy,0.6603695532266961
 1,MissForest,XGBoost,f1,0.649371781028395
-1,MICE,LogisticRegression,accuracy,0.5991910277624564
-1,MICE,LogisticRegression,f1,0.5678428178397383
-1,MICE,RandomForest,accuracy,0.5882699025556168
-1,MICE,RandomForest,f1,0.5617305833484694
-1,MICE,XGBoost,accuracy,0.58284611141754
-1,MICE,XGBoost,f1,0.5705756276490481
+1,MICE,LogisticRegression,accuracy,0.6290310718882146
+1,MICE,LogisticRegression,f1,0.6027323986428381
+1,MICE,RandomForest,accuracy,0.6522062879205737
+1,MICE,RandomForest,f1,0.6269744738012067
+1,MICE,XGBoost,accuracy,0.6657749586321015
+1,MICE,XGBoost,f1,0.6547726442468123
 2,No Handling,LogisticRegression,accuracy,0.5857254901960784
 2,No Handling,LogisticRegression,f1,0.5512497466165023
 2,No Handling,RandomForest,accuracy,0.5381176470588236
@@ -125,12 +125,12 @@ iteration,Method,Classifier,Metric,Mean
 2,MissForest,RandomForest,f1,0.6465236836549534
 2,MissForest,XGBoost,accuracy,0.6603695532266961
 2,MissForest,XGBoost,f1,0.649371781028395
-2,MICE,LogisticRegression,accuracy,0.5991910277624564
-2,MICE,LogisticRegression,f1,0.5678428178397383
-2,MICE,RandomForest,accuracy,0.5882699025556168
-2,MICE,RandomForest,f1,0.5617305833484694
-2,MICE,XGBoost,accuracy,0.58284611141754
-2,MICE,XGBoost,f1,0.5705756276490481
+2,MICE,LogisticRegression,accuracy,0.6290310718882146
+2,MICE,LogisticRegression,f1,0.6027323986428381
+2,MICE,RandomForest,accuracy,0.6522062879205737
+2,MICE,RandomForest,f1,0.6269744738012067
+2,MICE,XGBoost,accuracy,0.6657749586321015
+2,MICE,XGBoost,f1,0.6547726442468123
 3,No Handling,LogisticRegression,accuracy,0.5857254901960784
 3,No Handling,LogisticRegression,f1,0.5512497466165023
 3,No Handling,RandomForest,accuracy,0.5381176470588236
@@ -169,12 +169,12 @@ iteration,Method,Classifier,Metric,Mean
 3,MissForest,RandomForest,f1,0.6465236836549534
 3,MissForest,XGBoost,accuracy,0.6603695532266961
 3,MissForest,XGBoost,f1,0.649371781028395
-3,MICE,LogisticRegression,accuracy,0.5991910277624564
-3,MICE,LogisticRegression,f1,0.5678428178397383
-3,MICE,RandomForest,accuracy,0.5882699025556168
-3,MICE,RandomForest,f1,0.5617305833484694
-3,MICE,XGBoost,accuracy,0.58284611141754
-3,MICE,XGBoost,f1,0.5705756276490481
+3,MICE,LogisticRegression,accuracy,0.6290310718882146
+3,MICE,LogisticRegression,f1,0.6027323986428381
+3,MICE,RandomForest,accuracy,0.6522062879205737
+3,MICE,RandomForest,f1,0.6269744738012067
+3,MICE,XGBoost,accuracy,0.6657749586321015
+3,MICE,XGBoost,f1,0.6547726442468123
 4,No Handling,LogisticRegression,accuracy,0.5857254901960784
 4,No Handling,LogisticRegression,f1,0.5512497466165023
 4,No Handling,RandomForest,accuracy,0.5381176470588236
@@ -213,12 +213,12 @@ iteration,Method,Classifier,Metric,Mean
 4,MissForest,RandomForest,f1,0.6465236836549534
 4,MissForest,XGBoost,accuracy,0.6603695532266961
 4,MissForest,XGBoost,f1,0.649371781028395
-4,MICE,LogisticRegression,accuracy,0.5991910277624564
-4,MICE,LogisticRegression,f1,0.5678428178397383
-4,MICE,RandomForest,accuracy,0.5882699025556168
-4,MICE,RandomForest,f1,0.5617305833484694
-4,MICE,XGBoost,accuracy,0.58284611141754
-4,MICE,XGBoost,f1,0.5705756276490481
+4,MICE,LogisticRegression,accuracy,0.6290310718882146
+4,MICE,LogisticRegression,f1,0.6027323986428381
+4,MICE,RandomForest,accuracy,0.6522062879205737
+4,MICE,RandomForest,f1,0.6269744738012067
+4,MICE,XGBoost,accuracy,0.6657749586321015
+4,MICE,XGBoost,f1,0.6547726442468123
 5,No Handling,LogisticRegression,accuracy,0.5857254901960784
 5,No Handling,LogisticRegression,f1,0.5512497466165023
 5,No Handling,RandomForest,accuracy,0.5381176470588236
@@ -257,12 +257,12 @@ iteration,Method,Classifier,Metric,Mean
 5,MissForest,RandomForest,f1,0.6465236836549534
 5,MissForest,XGBoost,accuracy,0.6603695532266961
 5,MissForest,XGBoost,f1,0.649371781028395
-5,MICE,LogisticRegression,accuracy,0.5991910277624564
-5,MICE,LogisticRegression,f1,0.5678428178397383
-5,MICE,RandomForest,accuracy,0.5882699025556168
-5,MICE,RandomForest,f1,0.5617305833484694
-5,MICE,XGBoost,accuracy,0.58284611141754
-5,MICE,XGBoost,f1,0.5705756276490481
+5,MICE,LogisticRegression,accuracy,0.6290310718882146
+5,MICE,LogisticRegression,f1,0.6027323986428381
+5,MICE,RandomForest,accuracy,0.6522062879205737
+5,MICE,RandomForest,f1,0.6269744738012067
+5,MICE,XGBoost,accuracy,0.6657749586321015
+5,MICE,XGBoost,f1,0.6547726442468123
 6,No Handling,LogisticRegression,accuracy,0.5857254901960784
 6,No Handling,LogisticRegression,f1,0.5512497466165023
 6,No Handling,RandomForest,accuracy,0.5381176470588236
@@ -301,12 +301,12 @@ iteration,Method,Classifier,Metric,Mean
 6,MissForest,RandomForest,f1,0.6465236836549534
 6,MissForest,XGBoost,accuracy,0.6603695532266961
 6,MissForest,XGBoost,f1,0.649371781028395
-6,MICE,LogisticRegression,accuracy,0.5991910277624564
-6,MICE,LogisticRegression,f1,0.5678428178397383
-6,MICE,RandomForest,accuracy,0.5882699025556168
-6,MICE,RandomForest,f1,0.5617305833484694
-6,MICE,XGBoost,accuracy,0.58284611141754
-6,MICE,XGBoost,f1,0.5705756276490481
+6,MICE,LogisticRegression,accuracy,0.6290310718882146
+6,MICE,LogisticRegression,f1,0.6027323986428381
+6,MICE,RandomForest,accuracy,0.6522062879205737
+6,MICE,RandomForest,f1,0.6269744738012067
+6,MICE,XGBoost,accuracy,0.6657749586321015
+6,MICE,XGBoost,f1,0.6547726442468123
 7,No Handling,LogisticRegression,accuracy,0.5857254901960784
 7,No Handling,LogisticRegression,f1,0.5512497466165023
 7,No Handling,RandomForest,accuracy,0.5381176470588236
@@ -345,12 +345,12 @@ iteration,Method,Classifier,Metric,Mean
 7,MissForest,RandomForest,f1,0.6465236836549534
 7,MissForest,XGBoost,accuracy,0.6603695532266961
 7,MissForest,XGBoost,f1,0.649371781028395
-7,MICE,LogisticRegression,accuracy,0.5991910277624564
-7,MICE,LogisticRegression,f1,0.5678428178397383
-7,MICE,RandomForest,accuracy,0.5882699025556168
-7,MICE,RandomForest,f1,0.5617305833484694
-7,MICE,XGBoost,accuracy,0.58284611141754
-7,MICE,XGBoost,f1,0.5705756276490481
+7,MICE,LogisticRegression,accuracy,0.6290310718882146
+7,MICE,LogisticRegression,f1,0.6027323986428381
+7,MICE,RandomForest,accuracy,0.6522062879205737
+7,MICE,RandomForest,f1,0.6269744738012067
+7,MICE,XGBoost,accuracy,0.6657749586321015
+7,MICE,XGBoost,f1,0.6547726442468123
 8,No Handling,LogisticRegression,accuracy,0.5857254901960784
 8,No Handling,LogisticRegression,f1,0.5512497466165023
 8,No Handling,RandomForest,accuracy,0.5381176470588236
@@ -389,12 +389,12 @@ iteration,Method,Classifier,Metric,Mean
 8,MissForest,RandomForest,f1,0.6465236836549534
 8,MissForest,XGBoost,accuracy,0.6603695532266961
 8,MissForest,XGBoost,f1,0.649371781028395
-8,MICE,LogisticRegression,accuracy,0.5991910277624564
-8,MICE,LogisticRegression,f1,0.5678428178397383
-8,MICE,RandomForest,accuracy,0.5882699025556168
-8,MICE,RandomForest,f1,0.5617305833484694
-8,MICE,XGBoost,accuracy,0.58284611141754
-8,MICE,XGBoost,f1,0.5705756276490481
+8,MICE,LogisticRegression,accuracy,0.6290310718882146
+8,MICE,LogisticRegression,f1,0.6027323986428381
+8,MICE,RandomForest,accuracy,0.6522062879205737
+8,MICE,RandomForest,f1,0.6269744738012067
+8,MICE,XGBoost,accuracy,0.6657749586321015
+8,MICE,XGBoost,f1,0.6547726442468123
 9,No Handling,LogisticRegression,accuracy,0.5857254901960784
 9,No Handling,LogisticRegression,f1,0.5512497466165023
 9,No Handling,RandomForest,accuracy,0.5381176470588236
@@ -433,9 +433,9 @@ iteration,Method,Classifier,Metric,Mean
 9,MissForest,RandomForest,f1,0.6465236836549534
 9,MissForest,XGBoost,accuracy,0.6603695532266961
 9,MissForest,XGBoost,f1,0.649371781028395
-9,MICE,LogisticRegression,accuracy,0.5991910277624564
-9,MICE,LogisticRegression,f1,0.5678428178397383
-9,MICE,RandomForest,accuracy,0.5882699025556168
-9,MICE,RandomForest,f1,0.5617305833484694
-9,MICE,XGBoost,accuracy,0.58284611141754
-9,MICE,XGBoost,f1,0.5705756276490481
+9,MICE,LogisticRegression,accuracy,0.6290310718882146
+9,MICE,LogisticRegression,f1,0.6027323986428381
+9,MICE,RandomForest,accuracy,0.6522062879205737
+9,MICE,RandomForest,f1,0.6269744738012067
+9,MICE,XGBoost,accuracy,0.6657749586321015
+9,MICE,XGBoost,f1,0.6547726442468123

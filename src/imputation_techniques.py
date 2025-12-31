@@ -130,10 +130,11 @@ def impute_mice(
         # Use IterativeImputer (MICE implementation in sklearn)
         # sample_posterior=True is important for proper multiple imputation
         imputer = IterativeImputer(
+            estimator=RandomForestRegressor(n_estimators=50, random_state=seed),
             max_iter=max_iter,
             random_state=seed,
             initial_strategy='mean',
-            sample_posterior=True,
+            sample_posterior=False,
             verbose=0
         )
         
