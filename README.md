@@ -1,4 +1,4 @@
 # imputation_project
 Projeto de APC
 
-1
+para alterar a percentagem de missing values linha 645 e 672
